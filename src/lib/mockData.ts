@@ -1,6 +1,8 @@
 // 🎭 Dados Mockados — Desenvolvimento Local
+// Simula um banco de dados em memória durante a sessão
 
-export const MOCK_USERS = [
+// Estado em memória que persiste durante a sessão
+let usersDatabase = [
   {
     id: '1',
     name: 'Admin',
@@ -30,6 +32,25 @@ export const MOCK_USERS = [
     needsPasswordChange: true,
   },
 ]
+
+export const MOCK_USERS = usersDatabase
+
+// Função para atualizar senha no banco de dados em memória
+export const updateUserPassword = (userId: string, newPassword: string) => {
+  const userIndex = usersDatabase.findIndex(u => u.id === userId)
+  if (userIndex !== -1) {
+    usersDatabase[userIndex].password = newPassword
+    usersDatabase[userIndex].needsPasswordChange = false
+    console.log(`✓ Senha do usuário ${usersDatabase[userIndex].name} atualizada (simulated DB)`)
+    return true
+  }
+  return false
+}
+
+// Função para buscar usuário por ID
+export const getUserById = (id: string) => {
+  return usersDatabase.find(u => u.id === id)
+}
 
 export const MOCK_TABLES = [
   {
@@ -106,15 +127,20 @@ export const MOCK_STATS = {
 }
 
 // Login mock
-export const mockLogin = (email: string, password: string) => {
-  const user = MOCK_USERS[email as keyof typeof MOCK_USERS]
+export const mockLogin = (name: string, password: string) => {
+  const user = usersDatabase.find(u => u.name === name && u.password === password)
   if (user) {
     return {
       accessToken: 'mock-token-' + Date.now(),
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        needsPasswordChange: user.needsPasswordChange,
+      },
     }
   }
-  throw new Error('Usuário não encontrado')
+  throw new Error('Usuário ou senha incorretos')
 }
 
 // Buscar tabelas mock

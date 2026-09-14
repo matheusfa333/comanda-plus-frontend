@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { MOCK_USERS } from '@/lib/mockData'
 
 const MOCK_TABLES_DATA = [
   { id: '1', number: 1, capacity: 2, status: 'FREE', clientName: null },
@@ -16,11 +17,13 @@ const MOCK_ORDERS = [
   { id: '3', tableNumber: 2, clientName: 'João Silva', items: ['Sobremesa'], status: 'PENDING', time: '15:45' },
 ]
 
-const MOCK_STATS = {
-  totalToday: 2400,
-  ordersOpen: 2,
-  averageTicket: 1200,
-}
+const MOCK_LOGS = [
+  { id: '1', timestamp: '14:32', user: 'Admin', action: 'Criou usuário Carlos', details: 'role: GARCOM' },
+  { id: '2', timestamp: '14:15', user: 'Gerente', action: 'Abriu mesa 2', details: 'cliente: João Silva' },
+  { id: '3', timestamp: '13:45', user: 'Admin', action: 'Alterou senha de Gerente', details: 'força: forte' },
+  { id: '4', timestamp: '13:20', user: 'Cozinha', action: 'Marcou pedido como pronto', details: 'pedido #2' },
+  { id: '5', timestamp: '13:00', user: 'Admin', action: 'Sistema iniciado', details: 'v1.0.0' },
+]
 
 export default function DashboardPage() {
   const [tables, setTables] = useState(MOCK_TABLES_DATA)
@@ -33,6 +36,10 @@ export default function DashboardPage() {
   const [selectedTableForAccount, setSelectedTableForAccount] = useState<any>(null)
   const [showOrdersModal, setShowOrdersModal] = useState(false)
   const [selectedTableForOrders, setSelectedTableForOrders] = useState<any>(null)
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false)
+  const [newUserName, setNewUserName] = useState('')
+  const [newUserRole, setNewUserRole] = useState('GARCOM')
+  const [activeAdminTab, setActiveAdminTab] = useState<'users' | 'reports' | 'logs'>('users')
 
   useEffect(() => {
     const userStr = localStorage.getItem('user')
@@ -42,6 +49,7 @@ export default function DashboardPage() {
   }, [])
 
   const isChef = user?.role === 'COZINHA'
+  const isAdmin = user?.role === 'ADMIN'
   const occupiedTables = tables.filter(t => t.status === 'OCCUPIED')
 
   const handleConfirmOpenTable = () => {
@@ -78,12 +86,26 @@ export default function DashboardPage() {
     setShowOrdersModal(true)
   }
 
+  const handleCreateUser = () => {
+    if (!newUserName.trim()) {
+      alert('Digite o nome do usuário')
+      return
+    }
+
+    // Simular criação de usuário
+    console.log(`Criado usuário: ${newUserName} (${newUserRole})`)
+    alert(`✓ Usuário ${newUserName} criado com sucesso!\nSenha padrão: 123`)
+
+    setNewUserName('')
+    setNewUserRole('GARCOM')
+    setShowCreateUserModal(false)
+  }
+
   // Calcular total da conta
   const calculateTableTotal = (tableNum: number) => {
     const tableOrders = orders.filter(o => o.tableNumber === tableNum)
     let total = 0
     tableOrders.forEach(order => {
-      // Valores mockados (em centavos)
       const itemPrices: { [key: string]: number } = {
         'Moqueca de Peixe': 8500,
         'Feijoada': 6200,
@@ -100,191 +122,450 @@ export default function DashboardPage() {
     return total
   }
 
+  // ============ ADMIN DASHBOARD ============
+  if (isAdmin) {
+    return (
+      <div className="space-y-8">
+        {/* Título */}
+        <div>
+          <h1 className="text-4xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>
+            Painel de Administração
+          </h1>
+          <p className="text-[#7a6650] mt-2">
+            Gerenciar usuários, relatórios e sistema
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-6">
+          <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+            <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Usuários Ativos</p>
+            <p className="text-3xl font-bold mt-2" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>
+              {MOCK_USERS.length}
+            </p>
+          </div>
+
+          <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+            <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Mesas em Funcionamento</p>
+            <p className="text-3xl font-bold mt-2" style={{ color: '#3d5c3a', fontFamily: 'Georgia, serif' }}>
+              {occupiedTables.length}
+            </p>
+          </div>
+
+          <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+            <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Pedidos Abertos</p>
+            <p className="text-3xl font-bold mt-2" style={{ color: '#7a6650', fontFamily: 'Georgia, serif' }}>
+              {orders.filter(o => o.status === 'PENDING').length}
+            </p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveAdminTab('users')}
+            className="px-6 py-3 rounded-xl font-semibold transition-all"
+            style={{
+              background: activeAdminTab === 'users' ? '#c45c2a' : '#f0f0f0',
+              color: activeAdminTab === 'users' ? '#faf6ef' : '#7a6650'
+            }}
+          >
+            👥 Usuários
+          </button>
+          <button
+            onClick={() => setActiveAdminTab('reports')}
+            className="px-6 py-3 rounded-xl font-semibold transition-all"
+            style={{
+              background: activeAdminTab === 'reports' ? '#c45c2a' : '#f0f0f0',
+              color: activeAdminTab === 'reports' ? '#faf6ef' : '#7a6650'
+            }}
+          >
+            📊 Relatórios
+          </button>
+          <button
+            onClick={() => setActiveAdminTab('logs')}
+            className="px-6 py-3 rounded-xl font-semibold transition-all"
+            style={{
+              background: activeAdminTab === 'logs' ? '#c45c2a' : '#f0f0f0',
+              color: activeAdminTab === 'logs' ? '#faf6ef' : '#7a6650'
+            }}
+          >
+            📋 Logs
+          </button>
+        </div>
+
+        {/* TAB: Usuários */}
+        {activeAdminTab === 'users' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>
+                Gerenciar Usuários
+              </h2>
+              <button
+                onClick={() => setShowCreateUserModal(true)}
+                className="px-6 py-3 rounded-xl font-semibold"
+                style={{ background: '#3d5c3a', color: '#faf6ef' }}
+              >
+                + Criar Usuário
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {MOCK_USERS.map((u) => (
+                <div
+                  key={u.id}
+                  className="rounded-2xl p-4 flex items-center justify-between"
+                  style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}
+                >
+                  <div className="flex-1">
+                    <p className="font-semibold text-[#2a1f14]">{u.name}</p>
+                    <p className="text-xs" style={{ color: '#7a6650' }}>ID: {u.id}</p>
+                  </div>
+
+                  <span className="text-xs px-3 py-1 rounded-full font-semibold"
+                        style={{
+                          background: u.role === 'ADMIN' ? 'rgba(196,92,42,0.2)' : 'rgba(61,92,58,0.2)',
+                          color: u.role === 'ADMIN' ? '#c45c2a' : '#3d5c3a'
+                        }}>
+                    {u.role}
+                  </span>
+
+                  <span className="text-xs px-3 py-1 rounded-full"
+                        style={{
+                          background: u.needsPasswordChange ? 'rgba(217,83,79,0.2)' : 'rgba(61,92,58,0.15)',
+                          color: u.needsPasswordChange ? '#d9534f' : '#3d5c3a'
+                        }}>
+                    {u.needsPasswordChange ? '⚠️ Trocar senha' : '✓ Ativo'}
+                  </span>
+
+                  <button className="px-4 py-2 rounded-lg text-xs font-semibold ml-2"
+                          style={{ background: '#f0f0f0', color: '#7a6650' }}>
+                    Editar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: Relatórios */}
+        {activeAdminTab === 'reports' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#2a1f14] mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+              Relatórios
+            </h2>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+                <p className="text-sm font-medium" style={{ color: '#7a6650' }}>Faturamento do Dia</p>
+                <p className="text-4xl font-bold mt-3" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>
+                  R$ 1.234,50
+                </p>
+                <p className="text-xs mt-2" style={{ color: '#7a6650' }}>↑ 12% vs ontem</p>
+              </div>
+
+              <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+                <p className="text-sm font-medium" style={{ color: '#7a6650' }}>Ticket Médio</p>
+                <p className="text-4xl font-bold mt-3" style={{ color: '#3d5c3a', fontFamily: 'Georgia, serif' }}>
+                  R$ 87,30
+                </p>
+                <p className="text-xs mt-2" style={{ color: '#7a6650' }}>De 15 mesas abertas</p>
+              </div>
+
+              <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+                <p className="text-sm font-medium" style={{ color: '#7a6650' }}>Pedidos Concluídos</p>
+                <p className="text-4xl font-bold mt-3" style={{ color: '#3d5c3a', fontFamily: 'Georgia, serif' }}>
+                  47
+                </p>
+                <p className="text-xs mt-2" style={{ color: '#7a6650' }}>Tempo médio: 18min</p>
+              </div>
+
+              <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+                <p className="text-sm font-medium" style={{ color: '#7a6650' }}>Horário de Pico</p>
+                <p className="text-4xl font-bold mt-3" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>
+                  19h - 21h
+                </p>
+                <p className="text-xs mt-2" style={{ color: '#7a6650' }}>Ocupa 85% das mesas</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: Logs */}
+        {activeAdminTab === 'logs' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#2a1f14] mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+              Histórico de Atividades
+            </h2>
+
+            <div className="space-y-3">
+              {MOCK_LOGS.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-2xl p-4"
+                  style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-semibold text-[#2a1f14]">{log.action}</p>
+                      <p className="text-sm mt-1" style={{ color: '#7a6650' }}>{log.details}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-medium" style={{ color: '#8a7060' }}>{log.timestamp}</p>
+                      <p className="text-xs mt-1" style={{ color: '#c45c2a', fontWeight: '600' }}>{log.user}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modal Criar Usuário */}
+        {showCreateUserModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-96 space-y-4">
+              <h3 className="text-xl font-bold text-[#2a1f14]">Criar Novo Usuário</h3>
+
+              <div>
+                <label className="block text-sm font-medium text-[#7a6650] mb-2">
+                  Nome *
+                </label>
+                <input
+                  type="text"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  style={{ borderColor: '#d9cfc2' }}
+                  placeholder="Ex: João"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#7a6650] mb-2">
+                  Função *
+                </label>
+                <select
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  style={{ borderColor: '#d9cfc2' }}
+                >
+                  <option value="GARCOM">Garçom</option>
+                  <option value="GERENTE">Gerente</option>
+                  <option value="COZINHA">Cozinha</option>
+                </select>
+              </div>
+
+              <p className="text-xs" style={{ color: '#7a6650' }}>
+                ℹ️ Senha padrão será: <strong>123</strong>
+              </p>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowCreateUserModal(false)}
+                  className="flex-1 py-2 rounded-lg font-semibold transition-all"
+                  style={{ background: '#f0f0f0', color: '#7a6650' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCreateUser}
+                  className="flex-1 py-2 rounded-lg font-semibold transition-all hover:opacity-80"
+                  style={{ background: '#3d5c3a', color: '#faf6ef' }}
+                >
+                  Criar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ============ CHEF/COZINHA DASHBOARD ============
+  if (isChef) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>
+            Fila de Pedidos
+          </h1>
+          <p className="text-[#7a6650] mt-2">
+            Pedidos aguardando preparo
+          </p>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="text-center py-12" style={{ color: '#7a6650' }}>
+            <p className="text-lg">Nenhum pedido no momento</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="rounded-2xl p-4"
+                style={{
+                  background: order.status === 'PREPARING' ? 'rgba(196,92,42,0.1)' : 'rgba(61,92,58,0.1)',
+                  border: order.status === 'PREPARING' ? '1.5px solid #c45c2a' : '1.5px solid #3d5c3a',
+                }}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-semibold text-[#2a1f14]">Mesa {order.tableNumber}</p>
+                    <p className="text-sm" style={{ color: '#7a6650' }}>{order.clientName}</p>
+                  </div>
+                  <span
+                    className="text-xs px-3 py-1 rounded-full font-semibold"
+                    style={{
+                      background: order.status === 'PREPARING' ? 'rgba(196,92,42,0.2)' : 'rgba(61,92,58,0.2)',
+                      color: order.status === 'PREPARING' ? '#c45c2a' : '#3d5c3a',
+                    }}
+                  >
+                    {order.status === 'PENDING' ? 'Aguardando' : 'Preparando'}
+                  </span>
+                </div>
+
+                <div className="mb-3 space-y-1">
+                  {order.items.map((item, idx) => (
+                    <p key={idx} className="text-sm text-[#2a1f14]">
+                      • {item}
+                    </p>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+                  <p className="text-xs" style={{ color: '#7a6650' }}>Pedido às {order.time}</p>
+                  <button
+                    onClick={() => handleCompleteOrder(order.id)}
+                    className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
+                    style={{ background: '#3d5c3a', color: '#faf6ef' }}
+                  >
+                    {order.status === 'PENDING' ? 'Preparando' : 'Pronto'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ============ GARCOM/GERENTE DASHBOARD ============
   return (
     <div className="space-y-8">
-      {/* Título */}
       <div>
         <h1 className="text-4xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>
-          {isChef ? 'Fila de Pedidos' : 'Gerenciamento de Mesas'}
+          Gerenciamento de Mesas
         </h1>
         <p className="text-[#7a6650] mt-2">
-          {isChef ? 'Pedidos aguardando preparo' : 'Mesas em funcionamento'}
+          Mesas em funcionamento
         </p>
       </div>
 
-      {/* Stats - Apenas para Admin e Gerente */}
-      {!isChef && (user?.role === 'ADMIN' || user?.role === 'GERENTE') && (
+      {!isChef && (user?.role === 'GERENTE') && (
         <div className="grid grid-cols-3 gap-6">
           <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
             <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Total do Dia</p>
             <p className="text-3xl font-bold mt-2" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>
-              R$ {(MOCK_STATS.totalToday / 100).toFixed(2)}
+              R$ 24.00
             </p>
           </div>
 
           <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
             <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Pedidos Abertos</p>
             <p className="text-3xl font-bold mt-2" style={{ color: '#3d5c3a', fontFamily: 'Georgia, serif' }}>
-              {MOCK_STATS.ordersOpen}
+              2
             </p>
           </div>
 
           <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
             <p className="text-xs font-medium" style={{ color: '#7a6650' }}>Ticket Médio</p>
             <p className="text-3xl font-bold mt-2" style={{ color: '#7a6650', fontFamily: 'Georgia, serif' }}>
-              R$ {(MOCK_STATS.averageTicket / 100).toFixed(2)}
+              R$ 12.00
             </p>
           </div>
         </div>
       )}
 
-      {/* COZINHA - Fila de Pedidos */}
-      {isChef ? (
-        <div>
-          <div className="mb-6">
-            <button
-              onClick={() => setShowOpenTableModal(true)}
-              className="px-6 py-3 rounded-xl font-semibold transition-all hover:opacity-80"
-              style={{ background: '#3d5c3a', color: '#faf6ef' }}
-            >
-              + Abrir Nova Mesa
-            </button>
-          </div>
+      <div className="mb-6">
+        <button
+          onClick={() => setShowOpenTableModal(true)}
+          className="px-6 py-3 rounded-xl font-semibold transition-all hover:opacity-80"
+          style={{ background: '#3d5c3a', color: '#faf6ef' }}
+        >
+          + Abrir Nova Mesa
+        </button>
+      </div>
 
-          {orders.length === 0 ? (
-            <div className="text-center py-12" style={{ color: '#7a6650' }}>
-              <p className="text-lg">Nenhum pedido no momento</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="rounded-2xl p-4"
-                  style={{
-                    background: order.status === 'PREPARING' ? 'rgba(196,92,42,0.1)' : 'rgba(61,92,58,0.1)',
-                    border: order.status === 'PREPARING' ? '1.5px solid #c45c2a' : '1.5px solid #3d5c3a',
-                  }}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-[#2a1f14]">Mesa {order.tableNumber}</p>
-                      <p className="text-sm" style={{ color: '#7a6650' }}>{order.clientName}</p>
-                    </div>
-                    <span
-                      className="text-xs px-3 py-1 rounded-full font-semibold"
-                      style={{
-                        background: order.status === 'PREPARING' ? 'rgba(196,92,42,0.2)' : 'rgba(61,92,58,0.2)',
-                        color: order.status === 'PREPARING' ? '#c45c2a' : '#3d5c3a',
-                      }}
-                    >
-                      {order.status === 'PENDING' ? 'Aguardando' : 'Preparando'}
-                    </span>
-                  </div>
+      <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>
+        Mesas em Funcionamento
+      </h2>
 
-                  <div className="mb-3 space-y-1">
-                    {order.items.map((item, idx) => (
-                      <p key={idx} className="text-sm text-[#2a1f14]">
-                        • {item}
-                      </p>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
-                    <p className="text-xs" style={{ color: '#7a6650' }}>Pedido às {order.time}</p>
-                    <button
-                      onClick={() => handleCompleteOrder(order.id)}
-                      className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
-                      style={{ background: '#3d5c3a', color: '#faf6ef' }}
-                    >
-                      {order.status === 'PENDING' ? 'Preparando' : 'Pronto'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+      {occupiedTables.length === 0 ? (
+        <div className="text-center py-12" style={{ color: '#7a6650' }}>
+          <p className="text-lg">Nenhuma mesa aberta no momento</p>
         </div>
       ) : (
-        /* GARCOM/GERENTE/ADMIN - Mesas Ocupadas */
-        <div>
-          <div className="mb-6">
-            <button
-              onClick={() => setShowOpenTableModal(true)}
-              className="px-6 py-3 rounded-xl font-semibold transition-all hover:opacity-80"
-              style={{ background: '#3d5c3a', color: '#faf6ef' }}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {occupiedTables.map((table) => (
+            <div
+              key={table.id}
+              className="rounded-2xl p-4 flex flex-col gap-2 transition-all hover:shadow-lg"
+              style={{
+                background: 'rgba(196,92,42,0.05)',
+                border: '1.5px solid #c45c2a',
+              }}
             >
-              + Abrir Nova Mesa
-            </button>
-          </div>
-
-          <h2 className="text-2xl font-bold text-[#2a1f14] mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Mesas em Funcionamento
-          </h2>
-
-          {occupiedTables.length === 0 ? (
-            <div className="text-center py-12" style={{ color: '#7a6650' }}>
-              <p className="text-lg">Nenhuma mesa aberta no momento</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {occupiedTables.map((table) => (
-                <div
-                  key={table.id}
-                  className="rounded-2xl p-4 flex flex-col gap-2 transition-all hover:shadow-lg"
-                  style={{
-                    background: 'rgba(196,92,42,0.05)',
-                    border: '1.5px solid #c45c2a',
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                         style={{ background: 'rgba(196,92,42,0.2)' }}>
-                      🥩
-                    </div>
-                    <span className="text-xs px-2 py-1 rounded-full"
-                          style={{
-                            background: 'rgba(196,92,42,0.2)',
-                            color: '#c45c2a',
-                            fontWeight: '600'
-                          }}>
-                      Ocupada
-                    </span>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium" style={{ color: '#8a7060' }}>Mesa</p>
-                    <p className="text-2xl font-bold text-[#2a1f14] leading-none" style={{ fontFamily: 'Georgia, serif' }}>
-                      {table.number}
-                    </p>
-                    {table.clientName && (
-                      <p className="text-xs mt-1 px-2 py-1 rounded-lg truncate"
-                         style={{ background: 'rgba(232,160,74,0.15)', color: '#e8a04a' }}>
-                        👤 {table.clientName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-1 mt-1">
-                    <button
-                      onClick={() => handleOpenOrdersModal(table)}
-                      className="flex-1 py-1.5 rounded-xl text-center text-xs font-semibold transition-all hover:opacity-80"
-                      style={{ background: '#c45c2a', color: '#faf6ef' }}
-                    >
-                      Pedidos
-                    </button>
-                    <button
-                      onClick={() => handleOpenAccountModal(table)}
-                      className="flex-1 py-1.5 rounded-xl text-center text-xs font-semibold transition-all hover:opacity-80"
-                      style={{ background: '#8a7060', color: '#faf6ef' }}
-                    >
-                      Conta
-                    </button>
-                  </div>
+              <div className="flex items-start justify-between">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                     style={{ background: 'rgba(196,92,42,0.2)' }}>
+                  🥩
                 </div>
-              ))}
+                <span className="text-xs px-2 py-1 rounded-full"
+                      style={{
+                        background: 'rgba(196,92,42,0.2)',
+                        color: '#c45c2a',
+                        fontWeight: '600'
+                      }}>
+                  Ocupada
+                </span>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium" style={{ color: '#8a7060' }}>Mesa</p>
+                <p className="text-2xl font-bold text-[#2a1f14] leading-none" style={{ fontFamily: 'Georgia, serif' }}>
+                  {table.number}
+                </p>
+                {table.clientName && (
+                  <p className="text-xs mt-1 px-2 py-1 rounded-lg truncate"
+                     style={{ background: 'rgba(232,160,74,0.15)', color: '#e8a04a' }}>
+                    👤 {table.clientName}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-1 mt-1">
+                <button
+                  onClick={() => handleOpenOrdersModal(table)}
+                  className="flex-1 py-1.5 rounded-xl text-center text-xs font-semibold transition-all hover:opacity-80"
+                  style={{ background: '#c45c2a', color: '#faf6ef' }}
+                >
+                  Pedidos
+                </button>
+                <button
+                  onClick={() => handleOpenAccountModal(table)}
+                  className="flex-1 py-1.5 rounded-xl text-center text-xs font-semibold transition-all hover:opacity-80"
+                  style={{ background: '#8a7060', color: '#faf6ef' }}
+                >
+                  Conta
+                </button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 
@@ -356,7 +637,6 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Cliente */}
             {selectedTableForAccount.clientName && (
               <div className="mb-4 p-3 rounded-lg" style={{ background: '#f5f0eb' }}>
                 <p className="text-xs" style={{ color: '#8a7060' }}>Cliente</p>
@@ -364,7 +644,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Items da Conta */}
             <div className="mb-4">
               <p className="text-xs font-semibold" style={{ color: '#8a7060' }}>Itens</p>
               <div className="space-y-2 mt-2">
@@ -395,7 +674,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Total */}
             <div className="border-t pt-3 mt-4" style={{ borderColor: '#d9cfc2' }}>
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-[#2a1f14]">Total</span>
@@ -405,7 +683,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Botões */}
             <div className="flex gap-3 pt-6 mt-6" style={{ borderTop: '1px solid #d9cfc2' }}>
               <button
                 onClick={() => setShowAccountModal(false)}
@@ -439,7 +716,6 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Cliente */}
             {selectedTableForOrders.clientName && (
               <div className="mb-4 p-3 rounded-lg" style={{ background: '#f5f0eb' }}>
                 <p className="text-xs" style={{ color: '#8a7060' }}>Cliente</p>
@@ -447,7 +723,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Lista de Pedidos */}
             <div className="space-y-3">
               {orders
                 .filter(o => o.tableNumber === selectedTableForOrders.number)
@@ -483,7 +758,6 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            {/* Botão Novo Pedido */}
             <button
               className="w-full mt-6 py-3 rounded-lg font-semibold text-sm transition-all hover:opacity-80"
               style={{ background: '#c45c2a', color: '#faf6ef' }}
@@ -491,7 +765,6 @@ export default function DashboardPage() {
               + Adicionar Itens
             </button>
 
-            {/* Fechar */}
             <button
               onClick={() => setShowOrdersModal(false)}
               className="w-full mt-2 py-2 rounded-lg font-semibold text-sm transition-all"

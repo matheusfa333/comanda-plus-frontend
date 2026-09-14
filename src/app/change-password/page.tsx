@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { updateUserPassword } from '@/lib/mockData'
 
 export default function ChangePasswordPage() {
   const router = useRouter()
@@ -73,6 +74,15 @@ export default function ChangePasswordPage() {
 
       // Simular delay
       await new Promise(r => setTimeout(r, 500))
+
+      // Atualizar senha no banco de dados em memória
+      const passwordUpdated = updateUserPassword(user.id, newPassword)
+
+      if (!passwordUpdated) {
+        setPasswordError('Erro ao atualizar senha')
+        setLoading(false)
+        return
+      }
 
       // Atualizar localStorage
       const updatedUser = { ...user, needsPasswordChange: false }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { MOCK_USERS } from '@/lib/mockData'
+import { MOCK_USERS, mockLogin } from '@/lib/mockData'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,28 +16,16 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await new Promise(r => setTimeout(r, 500))
-
-      const user = MOCK_USERS.find(u => u.name === username && u.password === password)
-
-      if (!user) {
-        toast.error('Usuário ou senha incorretos')
-        setLoading(false)
-        return
-      }
+      // Usar mockLogin que verifica no banco de dados em memória
+      const result = mockLogin(username, password)
 
       // Salvar token e usuário no localStorage
-      localStorage.setItem('token', 'mock_token_' + user.id)
-      localStorage.setItem('user', JSON.stringify({
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        needsPasswordChange: user.needsPasswordChange,
-      }))
+      localStorage.setItem('token', result.accessToken)
+      localStorage.setItem('user', JSON.stringify(result.user))
 
       toast.success('Login realizado com sucesso!')
 
-      if (user.needsPasswordChange) {
+      if (result.user.needsPasswordChange) {
         router.push('/change-password')
       } else {
         router.push('/dashboard')
