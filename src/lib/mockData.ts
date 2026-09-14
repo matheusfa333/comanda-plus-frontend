@@ -1,31 +1,35 @@
 // 🎭 Dados Mockados — Desenvolvimento Local
 
-export const MOCK_USERS = {
-  'admin@comanda.com': {
+export const MOCK_USERS = [
+  {
     id: '1',
-    email: 'admin@comanda.com',
     name: 'Admin',
+    password: '123',
     role: 'ADMIN',
+    needsPasswordChange: true,
   },
-  'gerente@comanda.com': {
+  {
     id: '2',
-    email: 'gerente@comanda.com',
     name: 'Gerente',
+    password: '123',
     role: 'GERENTE',
+    needsPasswordChange: true,
   },
-  'garcom1@comanda.com': {
+  {
     id: '3',
-    email: 'garcom1@comanda.com',
-    name: 'Garçom',
+    name: 'Carlos',
+    password: '123',
     role: 'GARCOM',
+    needsPasswordChange: true,
   },
-  'cozinha@comanda.com': {
+  {
     id: '4',
-    email: 'cozinha@comanda.com',
     name: 'Cozinha',
-    role: 'KITCHEN',
+    password: '123',
+    role: 'COZINHA',
+    needsPasswordChange: true,
   },
-}
+]
 
 export const MOCK_TABLES = [
   {

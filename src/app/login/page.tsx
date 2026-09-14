@@ -3,17 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-
-const USERS = [
-  { email: 'admin@comanda.com', password: 'admin123', name: 'Admin', role: 'ADMIN' },
-  { email: 'gerente@comanda.com', password: 'gerente123', name: 'Roger', role: 'GERENTE' },
-  { email: 'garcom1@comanda.com', password: 'garcom123', name: 'Carlos', role: 'GARCOM' },
-  { email: 'cozinha@comanda.com', password: 'kitchen123', name: 'Cozinha', role: 'KITCHEN' },
-]
+import { MOCK_USERS } from '@/lib/mockData'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -22,31 +16,41 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Mock login (sem backend por enquanto)
       await new Promise(r => setTimeout(r, 500))
 
-      const user = USERS.find(u => u.email === email && u.password === password)
+      const user = MOCK_USERS.find(u => u.name === username && u.password === password)
 
       if (!user) {
-        toast.error('Email ou senha incorretos')
+        toast.error('Usuário ou senha incorretos')
         setLoading(false)
         return
       }
 
       // Salvar token e usuário no localStorage
-      localStorage.setItem('token', 'mock_token_' + user.email)
+      localStorage.setItem('token', 'mock_token_' + user.id)
       localStorage.setItem('user', JSON.stringify({
-        email: user.email,
+        id: user.id,
         name: user.name,
         role: user.role,
+        needsPasswordChange: user.needsPasswordChange,
       }))
 
       toast.success('Login realizado com sucesso!')
-      router.push('/dashboard')
+
+      if (user.needsPasswordChange) {
+        router.push('/change-password')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer login')
       setLoading(false)
     }
+  }
+
+  const handleQuickFill = (name: string, password: string) => {
+    setUsername(name)
+    setPassword(password)
   }
 
   return (
@@ -76,13 +80,13 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="text-xs font-semibold block mb-1.5" style={{ color: '#a08060' }}>
-              Email
+              Usuário
             </label>
             <input
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Seu nome"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{
                 background: 'rgba(255,249,242,0.07)',
@@ -133,19 +137,18 @@ export default function LoginPage() {
             👥 Usuários de teste (clique para preencher)
           </p>
           <div className="space-y-1.5">
-            {USERS.map((user) => (
+            {MOCK_USERS.map((user) => (
               <button
-                key={user.email}
+                key={user.id}
                 type="button"
                 onClick={() => {
-                  setEmail(user.email)
-                  setPassword(user.password)
+                  handleQuickFill(user.name, user.password)
                 }}
                 className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors hover:bg-[rgba(255,249,242,0.06)] text-xs"
               >
                 <span style={{ color: '#a08060' }}>
-                  <span style={{ color: '#c8a97a', fontWeight: '600' }}>{user.email}</span>
-                  <span> · {user.name}</span>
+                  <span style={{ color: '#c8a97a', fontWeight: '600' }}>{user.name}</span>
+                  <span> · Senha: {user.password}</span>
                 </span>
                 <span
                   className="text-xs font-semibold px-2 py-0.5 rounded-full"
