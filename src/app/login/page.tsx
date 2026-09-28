@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { MOCK_USERS, mockLogin } from '@/lib/mockData'
+import { login } from '@/lib/api/auth'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,10 +16,8 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Usar mockLogin que verifica no banco de dados em memória
-      const result = mockLogin(username, password)
+      const result = await login(username, password)
 
-      // Salvar token e usuário no localStorage
       localStorage.setItem('token', result.accessToken)
       localStorage.setItem('user', JSON.stringify(result.user))
 
@@ -34,11 +32,6 @@ export default function LoginPage() {
       toast.error(error.message || 'Erro ao fazer login')
       setLoading(false)
     }
-  }
-
-  const handleQuickFill = (name: string, password: string) => {
-    setUsername(name)
-    setPassword(password)
   }
 
   return (
@@ -82,6 +75,7 @@ export default function LoginPage() {
                 color: '#faf6ef'
               }}
               disabled={loading}
+              autoComplete="username"
             />
           </div>
 
@@ -101,6 +95,7 @@ export default function LoginPage() {
                 color: '#faf6ef'
               }}
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
 
@@ -117,40 +112,6 @@ export default function LoginPage() {
             {loading ? 'Verificando…' : 'Entrar'}
           </button>
         </form>
-
-        {/* Usuários de teste */}
-        <div className="mt-6 rounded-xl p-4"
-             style={{ background: 'rgba(255,249,242,0.04)', border: '1px dashed rgba(255,249,242,0.1)' }}>
-          <p className="text-xs font-semibold mb-2" style={{ color: '#6a5040' }}>
-            👥 Usuários de teste (clique para preencher)
-          </p>
-          <div className="space-y-1.5">
-            {MOCK_USERS.map((user) => (
-              <button
-                key={user.id}
-                type="button"
-                onClick={() => {
-                  handleQuickFill(user.name, user.password)
-                }}
-                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors hover:bg-[rgba(255,249,242,0.06)] text-xs"
-              >
-                <span style={{ color: '#a08060' }}>
-                  <span style={{ color: '#c8a97a', fontWeight: '600' }}>{user.name}</span>
-                  <span> · Senha: {user.password}</span>
-                </span>
-                <span
-                  className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  style={{
-                    background: 'rgba(196,92,42,0.2)',
-                    color: '#c45c2a'
-                  }}
-                >
-                  {user.role}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )
