@@ -1,47 +1,69 @@
 // 🎭 Dados Mockados — Desenvolvimento Local
 // Simula um banco de dados em memória durante a sessão
 
-// Estado em memória que persiste durante a sessão
-let usersDatabase = [
-  {
-    id: '1',
-    name: 'Admin',
-    password: '123',
-    role: 'ADMIN',
-    needsPasswordChange: true,
-  },
-  {
-    id: '2',
-    name: 'Gerente',
-    password: '123',
-    role: 'GERENTE',
-    needsPasswordChange: true,
-  },
-  {
-    id: '3',
-    name: 'Carlos',
-    password: '123',
-    role: 'GARCOM',
-    needsPasswordChange: true,
-  },
-  {
-    id: '4',
-    name: 'Cozinha',
-    password: '123',
-    role: 'COZINHA',
-    needsPasswordChange: true,
-  },
-]
+// Inicializar usuários com localStorage como backup
+const initializeUsers = () => {
+  const stored = typeof window !== 'undefined' ? localStorage.getItem('comanda_users_db') : null
+
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch (e) {
+      console.error('Erro ao restaurar usuários do localStorage:', e)
+    }
+  }
+
+  return [
+    {
+      id: '1',
+      name: 'Admin',
+      password: '123',
+      role: 'ADMIN',
+      needsPasswordChange: true,
+    },
+    {
+      id: '2',
+      name: 'Gerente',
+      password: '123',
+      role: 'GERENTE',
+      needsPasswordChange: true,
+    },
+    {
+      id: '3',
+      name: 'Carlos',
+      password: '123',
+      role: 'GARCOM',
+      needsPasswordChange: true,
+    },
+    {
+      id: '4',
+      name: 'Cozinha',
+      password: '123',
+      role: 'COZINHA',
+      needsPasswordChange: true,
+    },
+  ]
+}
+
+let usersDatabase = initializeUsers()
+
+// Persistir no localStorage
+const persistUsers = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('comanda_users_db', JSON.stringify(usersDatabase))
+  }
+}
 
 export const MOCK_USERS = usersDatabase
 
-// Função para atualizar senha no banco de dados em memória
+// Função para atualizar senha no banco de dados com persistência
 export const updateUserPassword = (userId: string, newPassword: string) => {
   const userIndex = usersDatabase.findIndex(u => u.id === userId)
   if (userIndex !== -1) {
     usersDatabase[userIndex].password = newPassword
     usersDatabase[userIndex].needsPasswordChange = false
-    console.log(`✓ Senha do usuário ${usersDatabase[userIndex].name} atualizada (simulated DB)`)
+    persistUsers()
+    console.log(`✓ Senha do usuário ${usersDatabase[userIndex].name} atualizada e persistida`)
     return true
   }
   return false
@@ -111,13 +133,27 @@ export const MOCK_TABLES = [
 ]
 
 export const MOCK_PRODUCTS = [
-  { id: '1', name: 'Moqueca de Peixe', price: 8500, category: 'Prato Principal', isMeat: false },
-  { id: '2', name: 'Feijoada', price: 6200, category: 'Prato Principal', isMeat: true },
-  { id: '3', name: 'Peixe Grelhado', price: 7200, category: 'Prato Principal', isMeat: false },
-  { id: '4', name: 'Churrasco', price: 5500, category: 'Prato Principal', isMeat: true },
-  { id: '5', name: 'Refrigerante', price: 800, category: 'Bebida', isMeat: false },
-  { id: '6', name: 'Cerveja', price: 1200, category: 'Bebida', isMeat: false },
-  { id: '7', name: 'Sobremesa', price: 2500, category: 'Sobremesa', isMeat: false },
+  // Carnes (vendidas por grama)
+  { id: '1', name: 'Bananinha', category: 'Carnes', type: 'meat', pricePerGram: 5, minGrams: 300, isMeat: true },
+  { id: '2', name: 'Maca de Peito', category: 'Carnes', type: 'meat', pricePerGram: 4, minGrams: 300, isMeat: true },
+  { id: '3', name: 'Picanha', category: 'Carnes', type: 'meat', pricePerGram: 6, minGrams: 300, isMeat: true },
+  { id: '4', name: 'Fraldinha', category: 'Carnes', type: 'meat', pricePerGram: 5, minGrams: 300, isMeat: true },
+  { id: '5', name: 'Cupim', category: 'Carnes', type: 'meat', pricePerGram: 4, minGrams: 300, isMeat: true },
+
+  // Acompanhamentos
+  { id: '6', name: 'Arroz Branco', category: 'Acompanhamentos', type: 'side', price: 800, isMeat: false },
+  { id: '7', name: 'Batata Frita', category: 'Acompanhamentos', type: 'side', price: 1200, isMeat: false },
+  { id: '8', name: 'Fritas com Bacon e Queijo', category: 'Acompanhamentos', type: 'side', price: 1800, isMeat: false },
+  { id: '9', name: 'Caldo de Feijão', category: 'Acompanhamentos', type: 'side', price: 600, isMeat: false },
+  { id: '10', name: 'Caldo de Frango', category: 'Acompanhamentos', type: 'side', price: 700, isMeat: false },
+
+  // Bebidas
+  { id: '11', name: 'Água', category: 'Bebidas', type: 'drink', price: 300, isMeat: false },
+  { id: '12', name: 'Refrigerante (lata)', category: 'Bebidas', type: 'drink', price: 500, isMeat: false },
+  { id: '13', name: 'Refrigerante (garrafa)', category: 'Bebidas', type: 'drink', price: 1200, isMeat: false },
+  { id: '14', name: 'Cerveja (garrafa)', category: 'Bebidas', type: 'drink', price: 1500, isMeat: false },
+  { id: '15', name: 'Suco Natural', category: 'Bebidas', type: 'drink', price: 900, isMeat: false },
+  { id: '16', name: 'Chope', category: 'Bebidas', type: 'drink', price: 2000, isMeat: false },
 ]
 
 export const MOCK_STATS = {
