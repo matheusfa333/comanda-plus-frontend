@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { listUsers, createUser, deleteUser, AppUser, UserRole } from '@/lib/api/users'
+import { listUsers, createUser, deleteUser, resetUserPassword, AppUser, UserRole } from '@/lib/api/users'
 import { listTables, openTable, closeTable, Table } from '@/lib/api/tables'
 import { getTableAccount, listKitchenOrders, updateOrderStatus, TableAccount, KitchenOrder } from '@/lib/api/orders'
 import AddItemsModal from '@/components/AddItemsModal'
@@ -27,6 +27,8 @@ export default function DashboardPage() {
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null)
   const [deletingUser, setDeletingUser] = useState(false)
+  const [userToReset, setUserToReset] = useState<AppUser | null>(null)
+  const [resettingUser, setResettingUser] = useState(false)
   const [showCreateUserModal, setShowCreateUserModal] = useState(false)
   const [newUserName, setNewUserName] = useState('')
   const [newUserRole, setNewUserRole] = useState<UserRole>('GARCOM')
@@ -97,6 +99,21 @@ export default function DashboardPage() {
       toast.error(e.message || 'Erro ao excluir usuário')
     } finally {
       setDeletingUser(false)
+    }
+  }
+
+  const confirmResetPassword = async () => {
+    if (!userToReset) return
+    setResettingUser(true)
+    try {
+      await resetUserPassword(userToReset.id)
+      toast.success(`Senha de ${userToReset.name} redefinida para 123`)
+      setUserToReset(null)
+      await loadUsers()
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao redefinir senha')
+    } finally {
+      setResettingUser(false)
     }
   }
 
@@ -251,7 +268,10 @@ export default function DashboardPage() {
                     <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: u.role === 'ADMIN' ? 'rgba(196,92,42,0.2)' : 'rgba(61,92,58,0.2)', color: u.role === 'ADMIN' ? '#c45c2a' : '#3d5c3a' }}>{u.role}</span>
                     <span className="text-xs px-3 py-1 rounded-full" style={{ background: u.needsPasswordChange ? 'rgba(217,83,79,0.2)' : 'rgba(61,92,58,0.15)', color: u.needsPasswordChange ? '#d9534f' : '#3d5c3a' }}>{u.needsPasswordChange ? '⚠️ Trocar senha' : '✓ Ativo'}</span>
                     {u.id !== user?.id && (
-                      <button onClick={() => setUserToDelete(u)} className="px-4 py-2 rounded-lg text-xs font-semibold ml-1 transition-all hover:opacity-80" style={{ background: 'rgba(217,83,79,0.15)', color: '#d9534f' }}>Excluir</button>
+                      <>
+                        <button onClick={() => setUserToReset(u)} className="px-4 py-2 rounded-lg text-xs font-semibold ml-1 transition-all hover:opacity-80" style={{ background: 'rgba(196,92,42,0.15)', color: '#c45c2a' }}>Resetar senha</button>
+                        <button onClick={() => setUserToDelete(u)} className="px-4 py-2 rounded-lg text-xs font-semibold ml-1 transition-all hover:opacity-80" style={{ background: 'rgba(217,83,79,0.15)', color: '#d9534f' }}>Excluir</button>
+                      </>
                     )}
                   </div>
                 ))}
@@ -306,6 +326,20 @@ export default function DashboardPage() {
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setUserToDelete(null)} disabled={deletingUser} className="flex-1 py-2 rounded-lg font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>Cancelar</button>
                 <button onClick={confirmDeleteUser} disabled={deletingUser} className="flex-1 py-2 rounded-lg font-semibold text-white" style={{ background: deletingUser ? 'rgba(217,83,79,0.5)' : '#d9534f' }}>{deletingUser ? 'Excluindo…' : 'Excluir'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Confirmar Reset de Senha */}
+        {userToReset && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-96 space-y-4">
+              <h3 className="text-xl font-bold text-[#2a1f14]">Resetar Senha</h3>
+              <p className="text-sm" style={{ color: '#7a6650' }}>Redefinir a senha de <strong>{userToReset.name}</strong> para <strong>123</strong>? O usuário precisará criar uma nova senha no próximo login.</p>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setUserToReset(null)} disabled={resettingUser} className="flex-1 py-2 rounded-lg font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>Cancelar</button>
+                <button onClick={confirmResetPassword} disabled={resettingUser} className="flex-1 py-2 rounded-lg font-semibold text-white" style={{ background: resettingUser ? 'rgba(196,92,42,0.5)' : '#c45c2a' }}>{resettingUser ? 'Resetando…' : 'Resetar'}</button>
               </div>
             </div>
           </div>

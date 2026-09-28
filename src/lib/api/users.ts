@@ -33,3 +33,8 @@ export async function createUser(data: {
 export async function deleteUser(id: string): Promise<{ success: boolean }> {
   return fetchWithAuth(`/users/${id}`, { method: 'DELETE' })
 }
+
+// Resetar senha de um usuário para "123" (admin) — troca obrigatória no próximo login
+export async function resetUserPassword(id: string): Promise<{ success: boolean }> {
+  return fetchWithAuth(`/users/${id}/reset-password`, { method: 'POST' })
+}
