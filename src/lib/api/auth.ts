@@ -2,9 +2,10 @@ import { API_URL, fetchWithAuth } from './config'
 
 export interface LoggedUser {
   id: string
+  username: string
   name: string
   email: string | null
-  role: 'ADMIN' | 'GERENTE' | 'GARCOM' | 'KITCHEN'
+  role: 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA' | 'CAIXA'
   needsPasswordChange: boolean
 }
 
@@ -14,13 +15,13 @@ export interface LoginResponse {
   user: LoggedUser
 }
 
-// Login com nome + senha (backend real)
-export async function login(name: string, password: string): Promise<LoginResponse> {
+// Login com usuário (username) + senha
+export async function login(username: string, password: string): Promise<LoginResponse> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ name, password }),
+    body: JSON.stringify({ username, password }),
   })
 
   const data = await res.json().catch(() => ({}))

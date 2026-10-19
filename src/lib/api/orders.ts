@@ -27,7 +27,7 @@ export interface TableAccount {
 
 export interface KitchenOrder {
   id: string
-  tableNumber: number
+  tableIdentifier: string
   clientName: string | null
   status: string
   createdAt: string

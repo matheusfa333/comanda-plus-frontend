@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ROLE_LABEL } from '@/lib/utils/format'
 
 export default function AuthenticatedLayout({
   children,
@@ -41,7 +42,7 @@ export default function AuthenticatedLayout({
           <div className="flex items-center gap-3">
             <span className="text-2xl">🌿</span>
             <h1 className="text-xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
-              Comanda+
+              Quintal do Roger
             </h1>
           </div>
 
@@ -54,7 +55,7 @@ export default function AuthenticatedLayout({
                       color: user?.role === 'ADMIN' ? '#c45c2a' : '#3d5c3a',
                       fontWeight: '600'
                     }}>
-                {user?.role}
+                {ROLE_LABEL[user?.role] ?? user?.role}
               </span>
             </div>
 

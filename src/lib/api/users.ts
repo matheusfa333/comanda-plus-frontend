@@ -1,40 +1,40 @@
 import { fetchWithAuth } from './config'
 
-export type UserRole = 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA'
+export type UserRole = 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA' | 'CAIXA'
 
 export interface AppUser {
   id: string
+  username: string
   name: string
   email: string | null
   role: UserRole
   needsPasswordChange: boolean
+  active: boolean
   createdAt: string
 }
 
-// Listar todos os usuários (admin)
 export async function listUsers(): Promise<AppUser[]> {
   return fetchWithAuth('/users', { method: 'GET' })
 }
 
-// Criar usuário (admin). Senha padrão "123" se não informada.
+// Senha inicial padrão "123" (troca obrigatória no primeiro login)
 export async function createUser(data: {
+  username: string
   name: string
   role: UserRole
   email?: string
-  password?: string
 }): Promise<{ id: string; message: string }> {
-  return fetchWithAuth('/users', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return fetchWithAuth('/users', { method: 'POST', body: JSON.stringify(data) })
 }
 
-// Remover usuário (admin)
 export async function deleteUser(id: string): Promise<{ success: boolean }> {
   return fetchWithAuth(`/users/${id}`, { method: 'DELETE' })
 }
 
-// Resetar senha de um usuário para "123" (admin) — troca obrigatória no próximo login
 export async function resetUserPassword(id: string): Promise<{ success: boolean }> {
   return fetchWithAuth(`/users/${id}/reset-password`, { method: 'POST' })
+}
+
+export async function setUserActive(id: string, active: boolean): Promise<{ success: boolean }> {
+  return fetchWithAuth(`/users/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) })
 }

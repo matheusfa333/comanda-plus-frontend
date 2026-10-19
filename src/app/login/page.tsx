@@ -45,9 +45,9 @@ export default function LoginPage() {
           <span className="text-4xl">🌿</span>
         </div>
         <h1 className="text-4xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
-          Quintal do Roger
+          Comanda+
         </h1>
-        <p className="text-[#8a7060] mt-1 text-sm">Sistema de Pedidos</p>
+        <p className="text-[#8a7060] mt-1 text-sm">Sistema de Pedidos — Quintal do Roger</p>
       </div>
 
       {/* Login Card */}
@@ -65,7 +65,7 @@ export default function LoginPage() {
             </label>
             <input
               type="text"
-              placeholder="Seu nome"
+              placeholder="Seu usuário"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
