@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { changePassword } from '@/lib/api/auth'
+import PasswordInput from '@/components/ui/PasswordInput'
 
 export default function ChangePasswordPage() {
   const router = useRouter()
@@ -101,8 +102,7 @@ export default function ChangePasswordPage() {
             <label className="text-xs font-semibold block mb-1.5" style={{ color: '#a08060' }}>
               Nova Senha *
             </label>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Digite a nova senha"
               value={newPassword}
               onChange={(e) => { setNewPassword(e.target.value); setPasswordError('') }}
@@ -121,8 +121,7 @@ export default function ChangePasswordPage() {
             <label className="text-xs font-semibold block mb-1.5" style={{ color: '#a08060' }}>
               Confirmar Senha *
             </label>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Confirme a nova senha"
               value={confirmPassword}
               onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError('') }}

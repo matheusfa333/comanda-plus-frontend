@@ -11,7 +11,6 @@ const ROLE_STYLE: Record<string, { bg: string; fg: string }> = {
   GERENTE: { bg: 'rgba(122,102,80,0.15)', fg: '#7a6650' },
   GARCOM: { bg: 'rgba(61,92,58,0.15)', fg: '#3d5c3a' },
   COZINHA: { bg: 'rgba(124,92,196,0.15)', fg: '#6b4fb8' },
-  CAIXA: { bg: 'rgba(42,31,20,0.08)', fg: '#5a4a3a' },
 }
 
 type Pending = { kind: 'delete' | 'reset' | 'toggle'; user: AppUser } | null
@@ -90,7 +89,7 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
         <div className="space-y-3">
           {users.map((u) => {
             const isMe = u.id === currentUserId
-            const rs = ROLE_STYLE[u.role] ?? ROLE_STYLE.CAIXA
+            const rs = ROLE_STYLE[u.role] ?? ROLE_STYLE.GERENTE
             return (
               <div key={u.id} className="rounded-2xl p-4 flex flex-wrap items-center gap-2" style={{ background: '#fff9f2', border: '1px solid #d9cfc2', opacity: u.active ? 1 : 0.6 }}>
                 <div className="flex-1 min-w-[140px]">
@@ -153,9 +152,8 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
               <label className="block text-sm font-medium text-[#7a6650] mb-1.5">Função *</label>
               <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as UserRole }))} className="w-full px-3 py-2 border rounded-lg" style={{ borderColor: '#d9cfc2' }}>
                 <option value="GARCOM">Garçom</option>
-                <option value="CAIXA">Caixa</option>
                 <option value="COZINHA">Cozinha</option>
-                <option value="GERENTE">Gerente</option>
+                <option value="GERENTE">Gerente (fecha contas)</option>
                 <option value="ADMIN">Administrador</option>
               </select>
             </div>

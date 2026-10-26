@@ -3,11 +3,8 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Product, ProductCategory, createProduct, removeProduct } from '@/lib/api/products'
-import { money, weight, CATEGORY_LABEL, CATEGORY_ORDER } from '@/lib/utils/format'
+import { money, weight, toCents, CATEGORY_LABEL, CATEGORY_ORDER } from '@/lib/utils/format'
 import ConfirmModal from '@/components/ui/ConfirmModal'
-
-// "12,50" → 1250 centavos
-const toCents = (value: string) => Math.round(parseFloat(value.replace(/\./g, '').replace(',', '.')) * 100)
 
 interface MenuTabProps {
   products: Product[]

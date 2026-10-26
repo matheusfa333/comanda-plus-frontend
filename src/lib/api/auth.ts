@@ -5,7 +5,7 @@ export interface LoggedUser {
   username: string
   name: string
   email: string | null
-  role: 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA' | 'CAIXA'
+  role: 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA'
   needsPasswordChange: boolean
 }
 

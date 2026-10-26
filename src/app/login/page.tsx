@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { login } from '@/lib/api/auth'
+import PasswordInput from '@/components/ui/PasswordInput'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -83,8 +84,7 @@ export default function LoginPage() {
             <label className="text-xs font-semibold block mb-1.5" style={{ color: '#a08060' }}>
               Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

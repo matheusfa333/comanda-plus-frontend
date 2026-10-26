@@ -14,6 +14,7 @@ import MenuTab from '@/components/admin/MenuTab'
 import StockTab from '@/components/admin/StockTab'
 import ReportsTab from '@/components/admin/ReportsTab'
 import LogsTab from '@/components/admin/LogsTab'
+import ClosedAccountsTab from '@/components/admin/ClosedAccountsTab'
 
 const STATUS_LABEL: Record<string, string> = { PENDING: 'Aguardando', PREPARING: 'Em preparo', READY: 'Pronto', DELIVERED: 'Entregue' }
 const NEXT_STATUS: Record<string, string> = { PENDING: 'PREPARING', PREPARING: 'READY', READY: 'DELIVERED' }
@@ -40,7 +41,8 @@ export default function DashboardPage() {
   const [tables, setTables] = useState<Table[]>([])
   const [kitchen, setKitchen] = useState<KitchenOrder[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'users' | 'menu' | 'stock' | 'reports' | 'logs'>('users')
+  const [tab, setTab] = useState<'users' | 'menu' | 'stock' | 'closed' | 'reports' | 'logs'>('users')
+  const [managerTab, setManagerTab] = useState<'tables' | 'closed' | 'reports'>('tables')
 
   const [showOpen, setShowOpen] = useState(false)
   const [identifier, setIdentifier] = useState('')
@@ -101,7 +103,7 @@ export default function DashboardPage() {
     const lowCount = products.filter((p) => p.lowStock).length
     const TABS = [
       { k: 'users', l: '👥 Usuários' }, { k: 'menu', l: '🍽️ Cardápio' }, { k: 'stock', l: '📦 Estoque' },
-      { k: 'reports', l: '📊 Relatórios' }, { k: 'logs', l: '📋 Logs' },
+      { k: 'closed', l: '🧾 Mesas Fechadas' }, { k: 'reports', l: '📊 Relatórios' }, { k: 'logs', l: '📋 Logs' },
     ] as const
     return (
       <div className="space-y-6">
@@ -117,7 +119,7 @@ export default function DashboardPage() {
             <div><p className="text-xs font-semibold" style={{ color: '#c0392b' }}>Estoque Baixo</p><p className="text-2xl font-bold" style={{ color: '#c0392b', fontFamily: 'Georgia, serif' }}>{lowCount} {lowCount === 1 ? 'item' : 'itens'}</p></div>
           </button>
         )}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {TABS.map((x) => (
             <button key={x.k} onClick={() => setTab(x.k)} className="py-3 rounded-xl font-semibold text-sm" style={{ background: tab === x.k ? '#c45c2a' : '#fff9f2', color: tab === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (tab === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
           ))}
@@ -125,6 +127,7 @@ export default function DashboardPage() {
         {tab === 'users' && <UsersTab users={users} loading={loading} currentUserId={user?.id} onChange={loadAdmin} />}
         {tab === 'menu' && <MenuTab products={products} loading={loading} onChange={loadAdmin} />}
         {tab === 'stock' && <StockTab products={products} loading={loading} onChange={loadAdmin} />}
+        {tab === 'closed' && <ClosedAccountsTab />}
         {tab === 'reports' && <ReportsTab />}
         {tab === 'logs' && <LogsTab />}
       </div>
@@ -165,18 +168,29 @@ export default function DashboardPage() {
     )
   }
 
-  const isCashier = role === 'CAIXA'
+  const isManager = role === 'GERENTE'
 
-  // ============ CAIXA / GARÇOM / GERENTE ============
+  // ============ GERENTE: abas extras ============
+  if (isManager && managerTab !== 'tables') {
+    return (
+      <div className="space-y-6">
+        <ManagerTabs value={managerTab} onChange={setManagerTab} />
+        {managerTab === 'closed' ? <ClosedAccountsTab /> : <ReportsTab />}
+      </div>
+    )
+  }
+
+  // ============ GARÇOM / GERENTE ============
   return (
     <div className="space-y-6">
-      <Title t={isCashier ? 'Caixa' : 'Gerenciamento de Mesas'} s={isCashier ? 'Contas abertas para fechamento' : 'Mesas em funcionamento'} />
+      {isManager && <ManagerTabs value={managerTab} onChange={setManagerTab} />}
+      <Title t="Gerenciamento de Mesas" s={isManager ? 'Mesas em funcionamento e fechamento de contas' : 'Mesas em funcionamento'} />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Stat label="Mesas Ocupadas" value={occupied.length} color="#c45c2a" />
-        <Stat label={isCashier ? 'Em aberto (sem taxa)' : 'Pedidos na cozinha'} value={isCashier ? money(occupied.reduce((s, t) => s + t.subtotal, 0)) : occupied.reduce((s, t) => s + t.pendingOrders, 0)} color="#3d5c3a" />
+        <Stat label={isManager ? 'Em aberto (sem taxa)' : 'Pedidos na cozinha'} value={isManager ? money(occupied.reduce((s, t) => s + t.subtotal, 0)) : occupied.reduce((s, t) => s + t.pendingOrders, 0)} color="#3d5c3a" />
         <Stat label="Mesas Livres" value={tables.filter((t) => t.status === 'FREE').length} color="#7a6650" />
       </div>
-      {!isCashier && <button onClick={() => setShowOpen(true)} className="px-6 py-3 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Abrir Nova Mesa</button>}
+      <button onClick={() => setShowOpen(true)} className="px-6 py-3 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Abrir Nova Mesa</button>
 
       {loading ? <div className="h-32 rounded-2xl animate-pulse" style={{ background: '#f5f0eb' }} /> : occupied.length === 0 ? (
         <div className="rounded-2xl py-12 text-center" style={card}><p className="text-3xl mb-2">🍽️</p><p className="text-[#7a6650]">Nenhuma mesa aberta no momento</p></div>
@@ -191,8 +205,8 @@ export default function DashboardPage() {
               {t.clientName && <p className="text-xs px-2 py-1 rounded-lg truncate" style={{ background: 'rgba(232,160,74,0.15)', color: '#9a5f14' }}>👤 {t.clientName}</p>}
               <p className="text-sm font-semibold" style={{ color: '#c45c2a' }}>{money(Math.round(t.subtotal * 1.1))} <span className="text-[10px] font-normal" style={{ color: '#8a7060' }}>c/ taxa</span></p>
               <div className="flex gap-1 mt-1">
-                {!isCashier && <button onClick={() => openOrders(t)} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: '#c45c2a', color: '#faf6ef' }}>Pedidos</button>}
-                <button onClick={() => { setSelected(t); setModal('account') }} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: '#8a7060', color: '#faf6ef' }}>{isCashier ? 'Fechar conta' : 'Conta'}</button>
+                <button onClick={() => openOrders(t)} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: '#c45c2a', color: '#faf6ef' }}>Pedidos</button>
+                <button onClick={() => { setSelected(t); setModal('account') }} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: isManager ? '#3d5c3a' : '#8a7060', color: '#faf6ef' }}>{isManager ? 'Fechar conta' : 'Conta'}</button>
               </div>
             </div>
           ))}
@@ -253,6 +267,21 @@ export default function DashboardPage() {
       {modal === 'account' && selected && (
         <TableAccountModal table={selected} onClose={() => setModal(null)} onClosed={() => { setModal(null); setSelected(null); loadTables() }} />
       )}
+    </div>
+  )
+}
+
+function ManagerTabs({ value, onChange }: { value: 'tables' | 'closed' | 'reports'; onChange: (v: 'tables' | 'closed' | 'reports') => void }) {
+  const tabs = [
+    { k: 'tables', l: '🍽️ Mesas' },
+    { k: 'closed', l: '🧾 Mesas Fechadas' },
+    { k: 'reports', l: '📊 Relatórios' },
+  ] as const
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {tabs.map((x) => (
+        <button key={x.k} onClick={() => onChange(x.k)} className="py-3 rounded-xl font-semibold text-sm" style={{ background: value === x.k ? '#c45c2a' : '#fff9f2', color: value === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (value === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
+      ))}
     </div>
   )
 }

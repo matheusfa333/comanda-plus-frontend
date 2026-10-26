@@ -1,6 +1,6 @@
 import { fetchWithAuth } from './config'
 
-export type UserRole = 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA' | 'CAIXA'
+export type UserRole = 'ADMIN' | 'GERENTE' | 'GARCOM' | 'COZINHA'
 
 export interface AppUser {
   id: string

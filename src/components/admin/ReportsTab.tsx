@@ -2,13 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { getReports, Reports, ReportPeriod } from '@/lib/api/reports'
-import { money, weight, CATEGORY_LABEL } from '@/lib/utils/format'
+import { getReports, Reports } from '@/lib/api/reports'
+import { money, weight, CATEGORY_LABEL, PAYMENT_LABEL, todayISO } from '@/lib/utils/format'
+import DateRangeFilter from '@/components/ui/DateRangeFilter'
 
-type ReportKey = 'revenue' | 'employees' | 'beers' | 'meats' | 'categories' | 'ticket'
+type ReportKey = 'revenue' | 'payments' | 'employees' | 'beers' | 'meats' | 'categories' | 'ticket'
 
 const REPORTS: { key: ReportKey; icon: string; label: string }[] = [
   { key: 'revenue', icon: '💰', label: 'Faturamento' },
+  { key: 'payments', icon: '💳', label: 'Formas de Pagamento' },
   { key: 'employees', icon: '🏆', label: 'Funcionário que Mais Vendeu' },
   { key: 'beers', icon: '🍺', label: 'Cervejas Mais Vendidas' },
   { key: 'meats', icon: '🥩', label: 'Carnes com Mais Saída' },
@@ -16,11 +18,6 @@ const REPORTS: { key: ReportKey; icon: string; label: string }[] = [
   { key: 'ticket', icon: '🧾', label: 'Ticket Médio por Mesa' },
 ]
 
-const PERIODS: { key: ReportPeriod; label: string }[] = [
-  { key: 'today', label: 'Hoje' },
-  { key: '7d', label: 'Últimos 7 dias' },
-  { key: '30d', label: 'Últimos 30 dias' },
-]
 
 function Bars({ rows }: { rows: { label: string; value: number; display: string; hint?: string }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.value))
@@ -42,7 +39,7 @@ function Bars({ rows }: { rows: { label: string; value: number; display: string;
 }
 
 export default function ReportsTab() {
-  const [period, setPeriod] = useState<ReportPeriod>('today')
+  const [range, setRange] = useState({ from: todayISO(), to: todayISO() })
   const [selected, setSelected] = useState<ReportKey>('revenue')
   const [data, setData] = useState<Reports | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,18 +47,19 @@ export default function ReportsTab() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      setData(await getReports(period))
+      setData(await getReports(range.from, range.to))
     } catch (e: any) {
       toast.error(e.message || 'Erro ao carregar relatórios')
     } finally {
       setLoading(false)
     }
-  }, [period])
+  }, [range])
 
   useEffect(() => { load() }, [load])
 
   const empty = <p className="text-center py-10" style={{ color: '#8a7060' }}>Nenhuma venda fechada no período.</p>
-  const periodLabel = PERIODS.find((p) => p.key === period)?.label.toLowerCase()
+  const fmt = (d: string) => d.split('-').reverse().join('/')
+  const periodLabel = range.from === range.to ? `em ${fmt(range.from)}` : `de ${fmt(range.from)} a ${fmt(range.to)}`
 
   const render = () => {
     if (!data) return null
@@ -72,8 +70,12 @@ export default function ReportsTab() {
             <div><p className="text-xs" style={{ color: '#7a6650' }}>Vendas (sem taxa)</p><p className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>{money(data.revenue.subtotal)}</p></div>
             <div><p className="text-xs" style={{ color: '#7a6650' }}>Taxa de serviço (10%)</p><p className="text-2xl font-bold" style={{ color: '#3d5c3a', fontFamily: 'Georgia, serif' }}>{money(data.revenue.serviceFee)}</p></div>
             <div><p className="text-xs" style={{ color: '#7a6650' }}>Total recebido</p><p className="text-2xl font-bold" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>{money(data.revenue.total)}</p></div>
-            <p className="sm:col-span-3 text-xs" style={{ color: '#8a7060' }}>{data.revenue.accounts} {data.revenue.accounts === 1 ? 'conta fechada' : 'contas fechadas'} ({periodLabel}).</p>
+            <p className="sm:col-span-3 text-xs" style={{ color: '#8a7060' }}>{data.revenue.accounts} {data.revenue.accounts === 1 ? 'conta fechada' : 'contas fechadas'} {periodLabel}.</p>
           </div>
+        )
+      case 'payments':
+        return data.byPayment.length === 0 ? empty : (
+          <Bars rows={data.byPayment.map((m) => ({ label: `${PAYMENT_LABEL[m.method]?.icon ?? ''} ${PAYMENT_LABEL[m.method]?.label ?? m.method}`, value: m.amount, display: money(m.amount), hint: `${m.count} ${m.count === 1 ? 'pagamento' : 'pagamentos'}` }))} />
         )
       case 'employees':
         return data.topEmployees.length === 0 ? empty : (
@@ -96,7 +98,7 @@ export default function ReportsTab() {
           <div>
             <p className="text-xs" style={{ color: '#7a6650' }}>Valor médio por conta fechada (com taxa)</p>
             <p className="text-4xl font-bold mt-1" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>{money(data.averageTicket)}</p>
-            <p className="text-xs mt-2" style={{ color: '#8a7060' }}>Base: {data.revenue.accounts} {data.revenue.accounts === 1 ? 'conta' : 'contas'} ({periodLabel}).</p>
+            <p className="text-xs mt-2" style={{ color: '#8a7060' }}>Base: {data.revenue.accounts} {data.revenue.accounts === 1 ? 'conta' : 'contas'} {periodLabel}.</p>
           </div>
         )
     }
@@ -104,21 +106,16 @@ export default function ReportsTab() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: '#f0e8de' }}>
-          {PERIODS.map((p) => (
-            <button key={p.key} onClick={() => setPeriod(p.key)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: period === p.key ? '#fff9f2' : 'transparent', color: period === p.key ? '#2a1f14' : '#7a6650' }}>{p.label}</button>
-          ))}
-        </div>
-      </div>
+      <h2 className="text-2xl font-bold text-[#2a1f14] mb-5" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {REPORTS.map((r) => (
-          <button key={r.key} onClick={() => setSelected(r.key)} className="px-4 py-2 rounded-xl text-sm font-medium border" style={{ background: selected === r.key ? '#c45c2a' : '#fff9f2', color: selected === r.key ? '#faf6ef' : '#2a1f14', borderColor: selected === r.key ? '#c45c2a' : '#d9cfc2' }}>
-            {r.icon} {r.label}
-          </button>
-        ))}
+      <div className="rounded-2xl p-4 mb-5 flex flex-wrap items-end gap-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+        <div className="min-w-[230px]">
+          <label className="block text-xs font-medium mb-1" style={{ color: '#7a6650' }}>Relatório</label>
+          <select value={selected} onChange={(e) => setSelected(e.target.value as ReportKey)} className="w-full px-3 py-2 rounded-lg border text-sm bg-white" style={{ borderColor: '#d9cfc2' }}>
+            {REPORTS.map((r) => <option key={r.key} value={r.key}>{r.icon} {r.label}</option>)}
+          </select>
+        </div>
+        <DateRangeFilter from={range.from} to={range.to} onChange={setRange} />
       </div>
 
       <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>

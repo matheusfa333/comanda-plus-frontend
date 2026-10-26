@@ -37,6 +37,6 @@ export async function removeProduct(id: string): Promise<{ success: boolean }> {
   return fetchWithAuth(`/products/${id}`, { method: 'DELETE' })
 }
 
-export async function adjustStock(id: string, stock: number): Promise<{ stock: number }> {
-  return fetchWithAuth(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify({ stock }) })
+export async function adjustStock(id: string, stock: number, reason: string): Promise<{ stock: number }> {
+  return fetchWithAuth(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify({ stock, reason }) })
 }
