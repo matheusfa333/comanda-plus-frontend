@@ -50,8 +50,8 @@ export default function LogsTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Logs do Sistema</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Logs do Sistema</h2>
         <div className="flex items-center gap-2">
           <span className="text-xs px-3 py-1.5 rounded-full border" style={{ borderColor: '#d9cfc2', color: '#7a6650' }}>{visible.length} {visible.length === 1 ? 'registro' : 'registros'}</span>
           <button onClick={load} className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>↻ Atualizar</button>
@@ -59,7 +59,7 @@ export default function LogsTab() {
       </div>
 
       <div className="rounded-2xl p-4 mb-4 flex flex-wrap items-end gap-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
-        <div className="min-w-[200px]">
+        <div className="w-full sm:w-auto sm:min-w-[200px]">
           <label className="block text-xs font-medium mb-1" style={{ color: '#7a6650' }}>Tipo</label>
           <select value={action} onChange={(e) => setAction(e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm bg-white" style={{ borderColor: '#d9cfc2' }}>
             <option value="">Todos os tipos</option>

@@ -36,7 +36,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6"
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-8"
          style={{ background: 'linear-gradient(160deg, #1e140d 0%, #2e1e10 50%, #3a2516 100%)' }}>
 
       {/* Branding */}
@@ -45,14 +45,14 @@ export default function LoginPage() {
              style={{ background: 'rgba(196,92,42,0.15)', border: '1px solid rgba(196,92,42,0.3)' }}>
           <span className="text-4xl">🌿</span>
         </div>
-        <h1 className="text-4xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
+        <h1 className="text-3xl sm:text-4xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
           Comanda+
         </h1>
         <p className="text-[#8a7060] mt-1 text-sm">Sistema de Pedidos — Quintal do Roger</p>
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-sm rounded-2xl p-6"
+      <div className="w-full max-w-sm rounded-2xl p-5 sm:p-6"
            style={{ background: 'rgba(255,249,242,0.05)', border: '1px solid rgba(255,249,242,0.1)' }}>
 
         <h2 className="text-lg font-semibold text-[#faf6ef] mb-5" style={{ fontFamily: 'Georgia, serif' }}>
@@ -77,6 +77,9 @@ export default function LoginPage() {
               }}
               disabled={loading}
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
             />
           </div>
 

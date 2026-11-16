@@ -13,6 +13,7 @@ interface CartItem {
   isMeat: boolean
   quantity: number // gramas (carne) ou unidades
   subtotal: number
+  notes: string // observação do item (ex: com gelo e limão)
 }
 
 interface AddItemsModalProps {
@@ -29,6 +30,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
   const [grams, setGrams] = useState<Record<string, string>>({})
   const [cart, setCart] = useState<CartItem[]>([])
   const [saving, setSaving] = useState(false)
+  const [editingNote, setEditingNote] = useState<string | null>(null)
 
   useEffect(() => {
     listProducts()
@@ -62,7 +64,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
     }
     setCart((c) => [
       ...c,
-      { key: `${p.id}-${Date.now()}`, productId: p.id, name: p.name, isMeat: true, quantity: value, subtotal: meatSubtotal(value, p.pricePerKg ?? 0) },
+      { key: `${p.id}-${Date.now()}`, productId: p.id, name: p.name, isMeat: true, quantity: value, subtotal: meatSubtotal(value, p.pricePerKg ?? 0), notes: '' },
     ])
     setGrams((g) => ({ ...g, [p.id]: '' }))
   }
@@ -76,13 +78,15 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
     setCart((c) => {
       const existing = c.find((i) => i.productId === p.id)
       if (!existing) {
-        return delta > 0 ? [...c, { key: p.id, productId: p.id, name: p.name, isMeat: false, quantity: delta, subtotal: p.price * delta }] : c
+        return delta > 0 ? [...c, { key: p.id, productId: p.id, name: p.name, isMeat: false, quantity: delta, subtotal: p.price * delta, notes: '' }] : c
       }
       const quantity = existing.quantity + delta
       if (quantity <= 0) return c.filter((i) => i.productId !== p.id)
       return c.map((i) => (i.productId === p.id ? { ...i, quantity, subtotal: p.price * quantity } : i))
     })
   }
+
+  const setNote = (key: string, notes: string) => setCart((c) => c.map((i) => (i.key === key ? { ...i, notes } : i)))
 
   const subtotal = cart.reduce((s, i) => s + i.subtotal, 0)
   const serviceFee = Math.round(subtotal * 0.1)
@@ -91,7 +95,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
     if (cart.length === 0) { toast.error('Adicione itens ao pedido'); return }
     setSaving(true)
     try {
-      await createOrder({ tableId, items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })) })
+      await createOrder({ tableId, items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity, notes: i.notes.trim() || undefined })) })
       toast.success('Pedido enviado para a cozinha!')
       onSuccess()
       onClose()
@@ -103,11 +107,11 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-2xl w-full max-h-[94vh] sm:max-h-[90vh] flex flex-col">
         <div className="p-4 border-b" style={{ borderColor: '#d9cfc2' }}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Adicionar Itens — Mesa {tableIdentifier}</h2>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="text-lg sm:text-xl font-bold text-[#2a1f14] min-w-0 break-words" style={{ fontFamily: 'Georgia, serif' }}>Adicionar Itens — Mesa {tableIdentifier}</h2>
             <button onClick={onClose} className="text-2xl text-[#7a6650] hover:text-[#2a1f14]" aria-label="Fechar">×</button>
           </div>
           <input
@@ -120,7 +124,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
           {loading ? (
             <div className="space-y-2">{[1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-lg animate-pulse" style={{ background: '#f5f0eb' }} />)}</div>
           ) : Object.keys(grouped).length === 0 ? (
@@ -134,7 +138,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
                     const out = p.stock - inCart(p.id) <= 0 || (p.isMeat && p.stock - inCart(p.id) < (p.minGrams ?? 300))
                     const units = cart.find((i) => i.productId === p.id && !i.isMeat)?.quantity ?? 0
                     return (
-                      <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg border" style={{ borderColor: '#e8ddd2', opacity: out ? 0.5 : 1 }}>
+                      <div key={p.id} className="flex flex-wrap min-[420px]:flex-nowrap items-center gap-x-3 gap-y-2 p-3 rounded-lg border" style={{ borderColor: '#e8ddd2', opacity: out ? 0.5 : 1 }}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-[#2a1f14] text-sm">
                             {p.name}
@@ -148,7 +152,7 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
                         </div>
 
                         {p.isMeat ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 ml-auto">
                             <div className="relative">
                               <input
                                 type="number"
@@ -165,16 +169,16 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
                               />
                               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#8a7060' }}>g</span>
                             </div>
-                            <button onClick={() => addMeat(p)} disabled={out} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>+ Add</button>
+                            <button onClick={() => addMeat(p)} disabled={out} className="px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>+ Add</button>
                           </div>
                         ) : units > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => changeUnits(p, -1)} className="w-7 h-7 rounded-full font-bold" style={{ background: '#f0f0f0', color: '#7a6650' }}>−</button>
+                          <div className="flex items-center gap-2 ml-auto">
+                            <button onClick={() => changeUnits(p, -1)} className="w-9 h-9 sm:w-7 sm:h-7 rounded-full font-bold" style={{ background: '#f0f0f0', color: '#7a6650' }}>−</button>
                             <span className="w-5 text-center font-semibold">{units}</span>
-                            <button onClick={() => changeUnits(p, 1)} className="w-7 h-7 rounded-full font-bold text-white" style={{ background: '#3d5c3a' }}>+</button>
+                            <button onClick={() => changeUnits(p, 1)} className="w-9 h-9 sm:w-7 sm:h-7 rounded-full font-bold text-white" style={{ background: '#3d5c3a' }}>+</button>
                           </div>
                         ) : (
-                          <button onClick={() => changeUnits(p, 1)} disabled={out} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>+ Add</button>
+                          <button onClick={() => changeUnits(p, 1)} disabled={out} className="ml-auto px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>+ Add</button>
                         )}
                       </div>
                     )
@@ -186,13 +190,36 @@ export default function AddItemsModal({ tableId, tableIdentifier, onClose, onSuc
         </div>
 
         {cart.length > 0 && (
-          <div className="border-t p-4 space-y-3" style={{ borderColor: '#d9cfc2' }}>
-            <div className="space-y-1.5 max-h-36 overflow-y-auto">
+          <div className="border-t p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-4 space-y-3" style={{ borderColor: '#d9cfc2' }}>
+            <div className="space-y-2 max-h-40 sm:max-h-48 overflow-y-auto">
               {cart.map((item) => (
-                <div key={item.key} className="flex justify-between items-center text-sm gap-2">
-                  <span className="flex-1 text-[#2a1f14]">{item.name} <span style={{ color: '#8a7060' }}>{item.isMeat ? weight(item.quantity) : `x${item.quantity}`}</span></span>
-                  <span className="font-semibold text-[#2a1f14]">{money(item.subtotal)}</span>
-                  <button onClick={() => setCart((c) => c.filter((i) => i.key !== item.key))} className="text-xs" style={{ color: '#d9534f' }}>remover</button>
+                <div key={item.key}>
+                  <div className="flex flex-wrap justify-between items-center text-sm gap-x-2 gap-y-0.5">
+                    <span className="flex-1 min-w-[45%] text-[#2a1f14]">{item.name} <span style={{ color: '#8a7060' }}>{item.isMeat ? weight(item.quantity) : `x${item.quantity}`}</span></span>
+                    <span className="font-semibold text-[#2a1f14]">{money(item.subtotal)}</span>
+                    {editingNote !== item.key && (
+                      <button onClick={() => setEditingNote(item.key)} className="text-xs" style={{ color: '#3d5c3a' }}>{item.notes ? 'editar obs' : '+ obs'}</button>
+                    )}
+                    <button onClick={() => setCart((c) => c.filter((i) => i.key !== item.key))} className="text-xs" style={{ color: '#d9534f' }}>remover</button>
+                  </div>
+                  {editingNote === item.key ? (
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        autoFocus
+                        value={item.notes}
+                        maxLength={120}
+                        onChange={(e) => setNote(item.key, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') setEditingNote(null) }}
+                        placeholder="Ex: com gelo e limão, sem cebola, bem passada..."
+                        className="flex-1 px-2 py-1 rounded border text-xs"
+                        style={{ borderColor: '#d9cfc2' }}
+                        aria-label={`Observação de ${item.name}`}
+                      />
+                      <button onClick={() => setEditingNote(null)} className="px-2 py-1 rounded text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>OK</button>
+                    </div>
+                  ) : item.notes.trim() ? (
+                    <p className="text-xs italic mt-0.5" style={{ color: '#b8741f' }}>↳ {item.notes.trim()}</p>
+                  ) : null}
                 </div>
               ))}
             </div>

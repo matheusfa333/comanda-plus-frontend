@@ -52,7 +52,7 @@ export default function ClosedAccountsTab() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Mesas Fechadas</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Mesas Fechadas</h2>
         <button onClick={load} className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>↻ Atualizar</button>
       </div>
 
@@ -68,9 +68,9 @@ export default function ClosedAccountsTab() {
             { l: 'Taxa de serviço', v: money(data.summary.serviceFee), c: '#3d5c3a' },
             { l: 'Total recebido', v: money(data.summary.total), c: '#c45c2a' },
           ].map((s) => (
-            <div key={s.l} className="rounded-2xl p-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+            <div key={s.l} className="rounded-2xl p-3 sm:p-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
               <p className="text-xs" style={{ color: '#7a6650' }}>{s.l}</p>
-              <p className="text-xl font-bold mt-1" style={{ color: s.c, fontFamily: 'Georgia, serif' }}>{s.v}</p>
+              <p className="text-lg sm:text-xl font-bold mt-1 break-words" style={{ color: s.c, fontFamily: 'Georgia, serif' }}>{s.v}</p>
             </div>
           ))}
         </div>
@@ -115,23 +115,23 @@ export default function ClosedAccountsTab() {
             const expanded = open === a.id
             return (
               <div key={a.id} className="rounded-2xl overflow-hidden" style={{ background: '#fff9f2', border: `1px solid ${a.divergent ? 'rgba(217,83,79,0.5)' : '#d9cfc2'}` }}>
-                <button onClick={() => setOpen(expanded ? null : a.id)} className="w-full text-left p-4 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <button onClick={() => setOpen(expanded ? null : a.id)} className="w-full text-left p-3 sm:p-4 flex flex-wrap items-center gap-x-4 gap-y-1">
                   <span className="text-lg" style={{ color: '#c45c2a' }}>{expanded ? '▾' : '▸'}</span>
                   <div className="min-w-[120px]">
                     <p className="font-semibold text-[#2a1f14]">Mesa {a.tableIdentifier}</p>
                     {a.clientName && <p className="text-xs" style={{ color: '#8a7060' }}>👤 {a.clientName}</p>}
                   </div>
-                  <div className="text-xs flex-1 min-w-[180px]" style={{ color: '#7a6650' }}>
+                  <div className="text-xs flex-1 basis-full sm:basis-auto min-w-0 sm:min-w-[180px] order-last sm:order-none" style={{ color: '#7a6650' }}>
                     <p>{multiDay ? dateTime(a.openedAt) : time(a.openedAt)} → {multiDay ? dateTime(a.closedAt) : time(a.closedAt)} <span style={{ color: '#8a7060' }}>({duration(a.openedAt, a.closedAt)})</span></p>
                     <p>Fechada por <strong>{a.closedBy}</strong> · {a.orders.length} {a.orders.length === 1 ? 'pedido' : 'pedidos'}</p>
                     {a.payments.length > 0 && <p>{a.payments.map((p) => `${PAYMENT_LABEL[p.method]?.icon ?? ''} ${paymentText(p)}`).join(' + ')}</p>}
                   </div>
                   {a.divergent && <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(217,83,79,0.12)', color: '#d9534f' }}>⚠ divergência</span>}
-                  <span className="font-bold text-lg" style={{ color: '#c45c2a' }}>{money(a.total)}</span>
+                  <span className="font-bold text-lg ml-auto sm:ml-0" style={{ color: '#c45c2a' }}>{money(a.total)}</span>
                 </button>
 
                 {expanded && (
-                  <div className="px-4 pb-4 pt-1 border-t" style={{ borderColor: '#ece3d8' }}>
+                  <div className="px-3 sm:px-4 pb-4 pt-1 border-t" style={{ borderColor: '#ece3d8' }}>
                     {a.orders.length === 0 ? (
                       <p className="text-sm py-3" style={{ color: '#8a7060' }}>Mesa fechada sem consumo.</p>
                     ) : (
@@ -142,9 +142,9 @@ export default function ClosedAccountsTab() {
                             <tbody>
                               {o.items.map((it, i) => (
                                 <tr key={i} className="border-b last:border-0" style={{ borderColor: '#f0e8de' }}>
-                                  <td className="py-1 text-[#2a1f14]">{it.productName}</td>
+                                  <td className="py-1 pr-2 text-[#2a1f14]">{it.productName}{it.notes && <span className="block text-xs italic" style={{ color: '#b8741f' }}>↳ {it.notes}</span>}</td>
                                   <td className="py-1 text-right whitespace-nowrap" style={{ color: '#7a6650' }}>{it.isMeat ? weight(it.quantity) : `${it.quantity} un`}</td>
-                                  <td className="py-1 pl-3 text-right whitespace-nowrap text-xs" style={{ color: '#8a7060' }}>{it.isMeat ? `${money(it.unitPrice)}/kg` : `${money(it.unitPrice)} cada`}</td>
+                                  <td className="hidden sm:table-cell py-1 pl-3 text-right whitespace-nowrap text-xs" style={{ color: '#8a7060' }}>{it.isMeat ? `${money(it.unitPrice)}/kg` : `${money(it.unitPrice)} cada`}</td>
                                   <td className="py-1 pl-3 text-right whitespace-nowrap font-medium text-[#2a1f14]">{money(it.subtotal)}</td>
                                 </tr>
                               ))}

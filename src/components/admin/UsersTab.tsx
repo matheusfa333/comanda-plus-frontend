@@ -13,6 +13,17 @@ const ROLE_STYLE: Record<string, { bg: string; fg: string }> = {
   COZINHA: { bg: 'rgba(124,92,196,0.15)', fg: '#6b4fb8' },
 }
 
+const DAY = 24 * 60 * 60 * 1000
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+
+// Exclusão liberada só 30 dias depois da desativação
+function deleteState(u: AppUser): { allowed: boolean; hint: string } {
+  if (u.active || !u.deletableAt) return { allowed: false, hint: 'Desative primeiro; a exclusão é liberada 30 dias depois' }
+  const left = Math.ceil((new Date(u.deletableAt).getTime() - Date.now()) / DAY)
+  if (left > 0) return { allowed: false, hint: `Exclusão liberada em ${shortDate(u.deletableAt)} (faltam ${left} ${left === 1 ? 'dia' : 'dias'})` }
+  return { allowed: true, hint: 'Desativado há mais de 30 dias' }
+}
+
 type Pending = { kind: 'delete' | 'reset' | 'toggle'; user: AppUser } | null
 
 interface UsersTabProps {
@@ -78,9 +89,9 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Gerenciar Usuários</h2>
-        <button onClick={() => setShowCreate(true)} className="px-5 py-2.5 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Criar Usuário</button>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Gerenciar Usuários</h2>
+        <button onClick={() => setShowCreate(true)} className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Criar Usuário</button>
       </div>
 
       {loading ? (
@@ -90,9 +101,10 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
           {users.map((u) => {
             const isMe = u.id === currentUserId
             const rs = ROLE_STYLE[u.role] ?? ROLE_STYLE.GERENTE
+            const del = deleteState(u)
             return (
               <div key={u.id} className="rounded-2xl p-4 flex flex-wrap items-center gap-2" style={{ background: '#fff9f2', border: '1px solid #d9cfc2', opacity: u.active ? 1 : 0.6 }}>
-                <div className="flex-1 min-w-[140px]">
+                <div className="flex-1 min-w-0 basis-full sm:basis-auto sm:min-w-[140px]">
                   <p className="font-semibold text-[#2a1f14]">{u.name}{isMe && <span className="text-xs font-normal" style={{ color: '#8a7060' }}> (você)</span>}</p>
                   <p className="text-xs" style={{ color: '#8a7060' }}>{u.username}</p>
                 </div>
@@ -105,11 +117,26 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
                   <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(61,92,58,0.15)', color: '#3d5c3a' }}>✓ Ativo</span>
                 )}
                 {!isMe && (
-                  <>
-                    <button onClick={() => setPending({ kind: 'reset', user: u })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>Resetar senha</button>
-                    <button onClick={() => setPending({ kind: 'toggle', user: u })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>{u.active ? 'Desativar' : 'Reativar'}</button>
-                    <button onClick={() => setPending({ kind: 'delete', user: u })} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(217,83,79,0.12)', color: '#d9534f' }}>Excluir</button>
-                  </>
+                  <div className="w-full sm:w-auto flex flex-wrap gap-2">
+                    <button onClick={() => setPending({ kind: 'reset', user: u })} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>Resetar senha</button>
+                    <button onClick={() => setPending({ kind: 'toggle', user: u })} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>{u.active ? 'Desativar' : 'Reativar'}</button>
+                    {!u.active && (
+                      <button
+                        onClick={() => del.allowed && setPending({ kind: 'delete', user: u })}
+                        disabled={!del.allowed}
+                        title={del.hint}
+                        className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ background: 'rgba(217,83,79,0.12)', color: '#d9534f' }}
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
+                )}
+                {!isMe && !u.active && (
+                  <p className="w-full text-xs" style={{ color: del.allowed ? '#3d5c3a' : '#8a7060' }}>
+                    {u.deactivatedAt ? `Desativado em ${shortDate(u.deactivatedAt)} · ` : ''}{del.hint}
+                  </p>
                 )}
               </div>
             )
@@ -118,8 +145,8 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-sm space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Criar Novo Usuário</h3>
             <div>
               <label className="block text-sm font-medium text-[#7a6650] mb-1.5">Nome *</label>
@@ -171,11 +198,11 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
           title={pending.kind === 'delete' ? 'Excluir Usuário' : pending.kind === 'reset' ? 'Resetar Senha' : pending.user.active ? 'Desativar Usuário' : 'Reativar Usuário'}
           message={
             pending.kind === 'delete' ? (
-              <>Excluir <strong>{pending.user.name}</strong>? Esta ação não pode ser desfeita. Se o usuário já lançou pedidos, desative-o em vez de excluir.</>
+              <>Excluir <strong>{pending.user.name}</strong>? Esta ação não pode ser desfeita. Usuários que já lançaram pedidos ficam apenas desativados, para manter o histórico.</>
             ) : pending.kind === 'reset' ? (
               <>Redefinir a senha de <strong>{pending.user.name}</strong> para <strong>123</strong>? Ele precisará criar uma nova senha no próximo acesso.</>
             ) : pending.user.active ? (
-              <><strong>{pending.user.name}</strong> não conseguirá mais entrar no sistema até ser reativado. O histórico de pedidos é mantido.</>
+              <><strong>{pending.user.name}</strong> não conseguirá mais entrar no sistema até ser reativado. O histórico de pedidos é mantido. A exclusão só fica disponível 30 dias depois da desativação.</>
             ) : (
               <><strong>{pending.user.name}</strong> poderá voltar a entrar no sistema.</>
             )

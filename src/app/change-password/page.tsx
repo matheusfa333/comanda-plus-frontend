@@ -63,7 +63,7 @@ export default function ChangePasswordPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6"
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-8"
          style={{ background: 'linear-gradient(160deg, #1e140d 0%, #2e1e10 50%, #3a2516 100%)' }}>
 
       <div className="text-center mb-10">
@@ -71,13 +71,13 @@ export default function ChangePasswordPage() {
              style={{ background: 'rgba(196,92,42,0.15)', border: '1px solid rgba(196,92,42,0.3)' }}>
           <span className="text-4xl">🔐</span>
         </div>
-        <h1 className="text-4xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
+        <h1 className="text-3xl sm:text-4xl font-bold text-[#faf6ef]" style={{ fontFamily: 'Georgia, serif' }}>
           Alterar Senha
         </h1>
         <p className="text-[#8a7060] mt-2 text-sm">Primeira alteração obrigatória</p>
       </div>
 
-      <div className="w-full max-w-sm rounded-2xl p-6"
+      <div className="w-full max-w-sm rounded-2xl p-5 sm:p-6"
            style={{ background: 'rgba(255,249,242,0.05)', border: '1px solid rgba(255,249,242,0.1)' }}>
 
         <div className="mb-6 p-4 rounded-xl"

@@ -1,6 +1,6 @@
 import { fetchWithAuth } from './config'
 
-export type ProductCategory = 'CARNE' | 'ACOMPANHAMENTO' | 'CALDO' | 'BEBIDA'
+export type ProductCategory = 'CARNE' | 'ACOMPANHAMENTO' | 'CALDO' | 'BEBIDA' | 'OUTROS'
 
 export interface Product {
   id: string

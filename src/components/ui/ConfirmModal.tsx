@@ -13,8 +13,8 @@ interface ConfirmModalProps {
 export default function ConfirmModal({ title, message, confirmLabel, tone = 'primary', loading, onConfirm, onCancel }: ConfirmModalProps) {
   const color = tone === 'danger' ? '#d9534f' : '#c45c2a'
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-sm space-y-4 max-h-[92vh] overflow-y-auto">
         <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>{title}</h3>
         <div className="text-sm" style={{ color: '#7a6650' }}>{message}</div>
         <div className="flex gap-3 pt-2">

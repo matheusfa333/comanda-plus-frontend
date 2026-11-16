@@ -8,6 +8,7 @@ export interface OrderItemView {
   quantity: number
   unitPrice: number
   subtotal: number
+  notes: string | null
 }
 
 export interface OrderView {
@@ -31,7 +32,7 @@ export interface KitchenOrder {
   clientName: string | null
   status: string
   createdAt: string
-  items: { productName: string; quantity: number; isMeat: boolean }[]
+  items: { productName: string; quantity: number; isMeat: boolean; notes: string | null }[]
 }
 
 export async function createOrder(data: {

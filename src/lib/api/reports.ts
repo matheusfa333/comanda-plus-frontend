@@ -32,7 +32,7 @@ export interface ClosedAccount {
     createdAt: string
     waiter: string
     subtotal: number
-    items: { productName: string; isMeat: boolean; quantity: number; unitPrice: number; subtotal: number }[]
+    items: { productName: string; isMeat: boolean; quantity: number; unitPrice: number; subtotal: number; notes: string | null }[]
   }[]
 }
 

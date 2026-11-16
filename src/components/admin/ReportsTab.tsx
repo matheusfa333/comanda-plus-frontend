@@ -25,9 +25,9 @@ function Bars({ rows }: { rows: { label: string; value: number; display: string;
     <div className="space-y-3">
       {rows.map((r, i) => (
         <div key={r.label}>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-[#2a1f14] font-medium">{i === 0 ? '🥇 ' : ''}{r.label}{r.hint && <span className="text-xs font-normal" style={{ color: '#8a7060' }}> · {r.hint}</span>}</span>
-            <span className="font-semibold" style={{ color: '#c45c2a' }}>{r.display}</span>
+          <div className="flex justify-between gap-3 text-sm mb-1">
+            <span className="text-[#2a1f14] font-medium min-w-0">{i === 0 ? '🥇 ' : ''}{r.label}{r.hint && <span className="text-xs font-normal" style={{ color: '#8a7060' }}> · {r.hint}</span>}</span>
+            <span className="font-semibold whitespace-nowrap" style={{ color: '#c45c2a' }}>{r.display}</span>
           </div>
           <div className="h-2 rounded-full" style={{ background: '#ece3d8' }}>
             <div className="h-2 rounded-full" style={{ width: `${(r.value / max) * 100}%`, background: i === 0 ? '#c45c2a' : '#d9a37f' }} />
@@ -97,7 +97,7 @@ export default function ReportsTab() {
         return data.revenue.accounts === 0 ? empty : (
           <div>
             <p className="text-xs" style={{ color: '#7a6650' }}>Valor médio por conta fechada (com taxa)</p>
-            <p className="text-4xl font-bold mt-1" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>{money(data.averageTicket)}</p>
+            <p className="text-3xl sm:text-4xl font-bold mt-1" style={{ color: '#c45c2a', fontFamily: 'Georgia, serif' }}>{money(data.averageTicket)}</p>
             <p className="text-xs mt-2" style={{ color: '#8a7060' }}>Base: {data.revenue.accounts} {data.revenue.accounts === 1 ? 'conta' : 'contas'} {periodLabel}.</p>
           </div>
         )
@@ -106,10 +106,10 @@ export default function ReportsTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-[#2a1f14] mb-5" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-5" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
 
       <div className="rounded-2xl p-4 mb-5 flex flex-wrap items-end gap-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
-        <div className="min-w-[230px]">
+        <div className="w-full sm:w-auto sm:min-w-[230px]">
           <label className="block text-xs font-medium mb-1" style={{ color: '#7a6650' }}>Relatório</label>
           <select value={selected} onChange={(e) => setSelected(e.target.value as ReportKey)} className="w-full px-3 py-2 rounded-lg border text-sm bg-white" style={{ borderColor: '#d9cfc2' }}>
             {REPORTS.map((r) => <option key={r.key} value={r.key}>{r.icon} {r.label}</option>)}
@@ -118,7 +118,7 @@ export default function ReportsTab() {
         <DateRangeFilter from={range.from} to={range.to} onChange={setRange} />
       </div>
 
-      <div className="rounded-2xl p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+      <div className="rounded-2xl p-4 sm:p-6" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
         <p className="font-semibold mb-4 text-[#2a1f14]">{REPORTS.find((r) => r.key === selected)?.icon} {REPORTS.find((r) => r.key === selected)?.label}</p>
         {loading ? <div className="h-32 rounded-xl animate-pulse" style={{ background: '#f5f0eb' }} /> : render()}
       </div>

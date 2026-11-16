@@ -23,14 +23,14 @@ const NEXT_LABEL: Record<string, string> = { PENDING: 'Iniciar preparo', PREPARI
 const card = { background: '#fff9f2', border: '1px solid #d9cfc2' }
 const Title = ({ t, s }: { t: string; s: string }) => (
   <div>
-    <h1 className="text-4xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>{t}</h1>
-    <p className="text-[#7a6650] mt-2">{s}</p>
+    <h1 className="text-2xl sm:text-4xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>{t}</h1>
+    <p className="text-sm sm:text-base text-[#7a6650] mt-1 sm:mt-2">{s}</p>
   </div>
 )
 const Stat = ({ label, value, color }: { label: string; value: React.ReactNode; color: string }) => (
-  <div className="rounded-2xl p-5" style={card}>
+  <div className="rounded-2xl px-4 py-3 sm:p-5 flex items-center justify-between gap-3 sm:block" style={card}>
     <p className="text-xs font-medium" style={{ color: '#7a6650' }}>{label}</p>
-    <p className="text-3xl font-bold mt-2" style={{ color, fontFamily: 'Georgia, serif' }}>{value}</p>
+    <p className="text-xl sm:text-3xl font-bold sm:mt-2 whitespace-nowrap" style={{ color, fontFamily: 'Georgia, serif' }}>{value}</p>
   </div>
 )
 
@@ -106,9 +106,9 @@ export default function DashboardPage() {
       { k: 'closed', l: '🧾 Mesas Fechadas' }, { k: 'reports', l: '📊 Relatórios' }, { k: 'logs', l: '📋 Logs' },
     ] as const
     return (
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <Title t="Painel de Administração" s="Gerenciar usuários, cardápio, estoque, relatórios e sistema" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           <Stat label="Usuários Ativos" value={users.filter((u) => u.active).length} color="#c45c2a" />
           <Stat label="Mesas Ocupadas" value={occupied.length} color="#3d5c3a" />
           <Stat label="Itens no Cardápio" value={products.length} color="#2a1f14" />
@@ -121,7 +121,7 @@ export default function DashboardPage() {
         )}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {TABS.map((x) => (
-            <button key={x.k} onClick={() => setTab(x.k)} className="py-3 rounded-xl font-semibold text-sm" style={{ background: tab === x.k ? '#c45c2a' : '#fff9f2', color: tab === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (tab === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
+            <button key={x.k} onClick={() => setTab(x.k)} className="py-2.5 sm:py-3 px-1 rounded-xl font-semibold text-sm" style={{ background: tab === x.k ? '#c45c2a' : '#fff9f2', color: tab === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (tab === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
           ))}
         </div>
         {tab === 'users' && <UsersTab users={users} loading={loading} currentUserId={user?.id} onChange={loadAdmin} />}
@@ -138,8 +138,8 @@ export default function DashboardPage() {
   if (role === 'COZINHA') {
     const advance = (o: KitchenOrder) => safe(async () => { await updateOrderStatus(o.id, NEXT_STATUS[o.status]); await loadKitchen() }, 'Erro ao atualizar status')
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-5 sm:space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Title t="Fila de Pedidos" s="Pedidos aguardando preparo" />
           <button onClick={loadKitchen} className="px-4 py-2 rounded-xl font-semibold text-sm" style={{ background: '#f0f0f0', color: '#7a6650' }}>↻ Atualizar</button>
         </div>
@@ -155,9 +155,14 @@ export default function DashboardPage() {
                     <div><p className="font-semibold text-[#2a1f14]">Mesa {o.tableIdentifier}</p><p className="text-xs" style={{ color: '#7a6650' }}>{o.clientName ?? ''} · {time(o.createdAt)}</p></div>
                     <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: 'rgba(0,0,0,0.06)', color: '#2a1f14' }}>{STATUS_LABEL[o.status] ?? o.status}</span>
                   </div>
-                  {o.items.map((it, i) => <p key={i} className="text-sm text-[#2a1f14]">• {it.productName} <strong>{it.isMeat ? weight(it.quantity) : `x${it.quantity}`}</strong></p>)}
+                  {o.items.map((it, i) => (
+                    <div key={i}>
+                      <p className="text-sm text-[#2a1f14]">• {it.productName} <strong>{it.isMeat ? weight(it.quantity) : `x${it.quantity}`}</strong></p>
+                      {it.notes && <p className="text-xs font-semibold ml-3 px-2 py-0.5 rounded inline-block" style={{ background: 'rgba(232,160,74,0.18)', color: '#9a5f12' }}>📝 {it.notes}</p>}
+                    </div>
+                  ))}
                   {NEXT_STATUS[o.status] && (
-                    <div className="flex justify-end pt-3"><button onClick={() => advance(o)} className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>{NEXT_LABEL[o.status]}</button></div>
+                    <div className="flex justify-end pt-3"><button onClick={() => advance(o)} className="w-full sm:w-auto px-4 py-2.5 sm:py-1.5 rounded-lg text-sm sm:text-xs font-semibold text-white" style={{ background: '#3d5c3a' }}>{NEXT_LABEL[o.status]}</button></div>
                   )}
                 </div>
               )
@@ -173,7 +178,7 @@ export default function DashboardPage() {
   // ============ GERENTE: abas extras ============
   if (isManager && managerTab !== 'tables') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <ManagerTabs value={managerTab} onChange={setManagerTab} />
         {managerTab === 'closed' ? <ClosedAccountsTab /> : <ReportsTab />}
       </div>
@@ -182,31 +187,31 @@ export default function DashboardPage() {
 
   // ============ GARÇOM / GERENTE ============
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {isManager && <ManagerTabs value={managerTab} onChange={setManagerTab} />}
       <Title t="Gerenciamento de Mesas" s={isManager ? 'Mesas em funcionamento e fechamento de contas' : 'Mesas em funcionamento'} />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
         <Stat label="Mesas Ocupadas" value={occupied.length} color="#c45c2a" />
         <Stat label={isManager ? 'Em aberto (sem taxa)' : 'Pedidos na cozinha'} value={isManager ? money(occupied.reduce((s, t) => s + t.subtotal, 0)) : occupied.reduce((s, t) => s + t.pendingOrders, 0)} color="#3d5c3a" />
         <Stat label="Mesas Livres" value={tables.filter((t) => t.status === 'FREE').length} color="#7a6650" />
       </div>
-      <button onClick={() => setShowOpen(true)} className="px-6 py-3 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Abrir Nova Mesa</button>
+      <button onClick={() => setShowOpen(true)} className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Abrir Nova Mesa</button>
 
       {loading ? <div className="h-32 rounded-2xl animate-pulse" style={{ background: '#f5f0eb' }} /> : occupied.length === 0 ? (
         <div className="rounded-2xl py-12 text-center" style={card}><p className="text-3xl mb-2">🍽️</p><p className="text-[#7a6650]">Nenhuma mesa aberta no momento</p></div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {occupied.map((t) => (
-            <div key={t.id} className="rounded-2xl p-4 flex flex-col gap-2" style={{ background: 'rgba(196,92,42,0.05)', border: '1.5px solid #c45c2a' }}>
-              <div className="flex justify-between items-start">
-                <div><p className="text-xs" style={{ color: '#8a7060' }}>Mesa</p><p className="text-2xl font-bold text-[#2a1f14] leading-none" style={{ fontFamily: 'Georgia, serif' }}>{t.identifier}</p></div>
+            <div key={t.id} className="rounded-2xl p-3 sm:p-4 flex flex-col gap-2 min-w-0" style={{ background: 'rgba(196,92,42,0.05)', border: '1.5px solid #c45c2a' }}>
+              <div className="flex flex-wrap justify-between items-start gap-1">
+                <div className="min-w-0"><p className="text-xs" style={{ color: '#8a7060' }}>Mesa</p><p className="text-xl sm:text-2xl font-bold text-[#2a1f14] leading-none break-words" style={{ fontFamily: 'Georgia, serif' }}>{t.identifier}</p></div>
                 {t.pendingOrders > 0 && <span className="text-[10px] px-2 py-1 rounded-full font-semibold" style={{ background: 'rgba(232,160,74,0.2)', color: '#9a5f14' }}>{t.pendingOrders} na cozinha</span>}
               </div>
               {t.clientName && <p className="text-xs px-2 py-1 rounded-lg truncate" style={{ background: 'rgba(232,160,74,0.15)', color: '#9a5f14' }}>👤 {t.clientName}</p>}
               <p className="text-sm font-semibold" style={{ color: '#c45c2a' }}>{money(Math.round(t.subtotal * 1.1))} <span className="text-[10px] font-normal" style={{ color: '#8a7060' }}>c/ taxa</span></p>
               <div className="flex gap-1 mt-1">
-                <button onClick={() => openOrders(t)} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: '#c45c2a', color: '#faf6ef' }}>Pedidos</button>
-                <button onClick={() => { setSelected(t); setModal('account') }} className="flex-1 py-1.5 rounded-xl text-xs font-semibold" style={{ background: isManager ? '#3d5c3a' : '#8a7060', color: '#faf6ef' }}>{isManager ? 'Fechar conta' : 'Conta'}</button>
+                <button onClick={() => openOrders(t)} className="flex-1 py-2 sm:py-1.5 rounded-xl text-xs font-semibold" style={{ background: '#c45c2a', color: '#faf6ef' }}>Pedidos</button>
+                <button onClick={() => { setSelected(t); setModal('account') }} className="flex-1 py-2 sm:py-1.5 rounded-xl text-xs font-semibold" style={{ background: isManager ? '#3d5c3a' : '#8a7060', color: '#faf6ef' }}>{isManager ? 'Fechar conta' : 'Conta'}</button>
               </div>
             </div>
           ))}
@@ -214,8 +219,8 @@ export default function DashboardPage() {
       )}
 
       {showOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-sm space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Abrir Nova Mesa</h3>
             <div>
               <label className="block text-sm font-medium text-[#7a6650] mb-1.5">Número / Identificador *</label>
@@ -234,10 +239,10 @@ export default function DashboardPage() {
       )}
 
       {modal === 'orders' && selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-md max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Pedidos — Mesa {selected.identifier}</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] min-w-0 break-words" style={{ fontFamily: 'Georgia, serif' }}>Pedidos — Mesa {selected.identifier}</h3>
               <button onClick={() => setModal(null)} className="text-2xl text-[#7a6650]" aria-label="Fechar">×</button>
             </div>
             {!account ? <div className="h-24 rounded-xl animate-pulse" style={{ background: '#f5f0eb' }} /> : account.orders.length === 0 ? (
@@ -246,11 +251,13 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {account.orders.map((o) => (
                   <div key={o.id} className="p-3 rounded-lg border" style={{ borderColor: '#e8ddd2' }}>
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
                       <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: 'rgba(61,92,58,0.15)', color: '#3d5c3a' }}>{STATUS_LABEL[o.status] ?? o.status} · {time(o.createdAt)}</span>
                       <span className="text-sm font-semibold" style={{ color: '#c45c2a' }}>{money(o.subtotal)}</span>
                     </div>
-                    {o.items.map((it) => <p key={it.id} className="text-sm text-[#2a1f14]">• {it.productName} {it.isMeat ? weight(it.quantity) : `x${it.quantity}`} — {money(it.subtotal)}</p>)}
+                    {o.items.map((it) => (
+                      <p key={it.id} className="text-sm text-[#2a1f14]">• {it.productName} {it.isMeat ? weight(it.quantity) : `x${it.quantity}`} — {money(it.subtotal)}{it.notes && <span className="text-xs italic" style={{ color: '#b8741f' }}> · {it.notes}</span>}</p>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -280,7 +287,7 @@ function ManagerTabs({ value, onChange }: { value: 'tables' | 'closed' | 'report
   return (
     <div className="grid grid-cols-3 gap-2">
       {tabs.map((x) => (
-        <button key={x.k} onClick={() => onChange(x.k)} className="py-3 rounded-xl font-semibold text-sm" style={{ background: value === x.k ? '#c45c2a' : '#fff9f2', color: value === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (value === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
+        <button key={x.k} onClick={() => onChange(x.k)} className="py-2.5 sm:py-3 px-1 rounded-xl font-semibold text-xs sm:text-sm" style={{ background: value === x.k ? '#c45c2a' : '#fff9f2', color: value === x.k ? '#faf6ef' : '#2a1f14', border: '1px solid ' + (value === x.k ? '#c45c2a' : '#d9cfc2') }}>{x.l}</button>
       ))}
     </div>
   )

@@ -80,10 +80,10 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-md max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Conta — Mesa {table.identifier}</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-[#2a1f14] min-w-0 break-words" style={{ fontFamily: 'Georgia, serif' }}>Conta — Mesa {table.identifier}</h3>
           <button onClick={onClose} className="text-2xl text-[#7a6650]" aria-label="Fechar">×</button>
         </div>
 
@@ -103,9 +103,9 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
                 <p className="text-center py-4 text-[#7a6650]">Nenhum item consumido</p>
               ) : (
                 items.map((it) => (
-                  <div key={it.id} className="flex justify-between text-sm text-[#2a1f14] py-1">
-                    <span>{it.productName} <span style={{ color: '#8a7060' }}>{it.isMeat ? weight(it.quantity) : `x${it.quantity}`}</span></span>
-                    <span>{money(it.subtotal)}</span>
+                  <div key={it.id} className="flex justify-between gap-3 text-sm text-[#2a1f14] py-1">
+                    <span className="min-w-0">{it.productName} <span style={{ color: '#8a7060' }}>{it.isMeat ? weight(it.quantity) : `x${it.quantity}`}</span>{it.notes && <span className="block text-xs italic" style={{ color: '#b8741f' }}>↳ {it.notes}</span>}</span>
+                    <span className="whitespace-nowrap">{money(it.subtotal)}</span>
                   </div>
                 ))
               )}
@@ -144,7 +144,7 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
                           <button onClick={() => removeLine(i)} className="text-xs font-semibold" style={{ color: '#d9534f' }}>Remover</button>
                         )}
                       </div>
-                      <div className="grid grid-cols-4 gap-1.5">
+                      <div className="grid grid-cols-2 min-[380px]:grid-cols-4 gap-1.5">
                         {METHODS.map((m) => {
                           const active = l.method === m
                           return (
@@ -160,13 +160,13 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
                           )
                         })}
                       </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
+                      <div className="flex flex-wrap gap-2">
+                        <div className="flex-1 min-w-[120px]">
                           <label className="block text-[11px] mb-0.5" style={{ color: '#8a7060' }}>Valor (R$)</label>
                           <input inputMode="decimal" value={l.amount} onChange={(e) => updateLine(i, { amount: e.target.value })} className="w-full px-2 py-1.5 border rounded-lg text-sm" style={{ borderColor: '#d9cfc2' }} />
                         </div>
                         {l.method === 'CREDITO' && (
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-[140px]">
                             <label className="block text-[11px] mb-0.5" style={{ color: '#8a7060' }}>Parcelas</label>
                             <select value={l.installments} onChange={(e) => updateLine(i, { installments: Number(e.target.value) })} className="w-full px-2 py-1.5 border rounded-lg text-sm bg-white" style={{ borderColor: '#d9cfc2' }}>
                               {Array.from({ length: MAX_INSTALLMENTS }, (_, k) => k + 1).map((n) => (
@@ -176,7 +176,7 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
                           </div>
                         )}
                         {l.method === 'DINHEIRO' && (
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-[120px]">
                             <label className="block text-[11px] mb-0.5" style={{ color: '#8a7060' }}>Recebido (troco)</label>
                             <input inputMode="decimal" value={l.received} onChange={(e) => updateLine(i, { received: e.target.value })} placeholder="Opcional" className="w-full px-2 py-1.5 border rounded-lg text-sm" style={{ borderColor: '#d9cfc2' }} />
                           </div>
@@ -190,7 +190,7 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
                     </div>
                   )
                 })}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <button onClick={addLine} className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: '#fff', color: '#3d5c3a', border: '1px dashed #3d5c3a' }}>+ Dividir pagamento</button>
                   <span className="text-xs font-semibold" style={{ color: remaining === 0 ? '#3d5c3a' : '#d9534f' }}>
                     {remaining === 0 ? '✓ Valor completo' : remaining > 0 ? `Falta ${money(remaining)}` : `Passou ${money(-remaining)}`}
@@ -199,8 +199,8 @@ export default function TableAccountModal({ table, onClose, onClosed }: TableAcc
               </>
             )}
             <div className="flex gap-2">
-              <button onClick={() => setConfirming(false)} disabled={closing} className="flex-1 py-2 rounded-lg font-semibold text-sm" style={{ background: '#fff', color: '#7a6650' }}>Voltar</button>
-              <button onClick={handleClose} disabled={closing || !paymentOk} className="flex-1 py-2 rounded-lg font-semibold text-sm text-white disabled:opacity-40" style={{ background: '#3d5c3a', opacity: closing ? 0.6 : undefined }}>
+              <button onClick={() => setConfirming(false)} disabled={closing} className="flex-1 py-2.5 sm:py-2 rounded-lg font-semibold text-sm" style={{ background: '#fff', color: '#7a6650' }}>Voltar</button>
+              <button onClick={handleClose} disabled={closing || !paymentOk} className="flex-1 py-2.5 sm:py-2 rounded-lg font-semibold text-sm text-white disabled:opacity-40" style={{ background: '#3d5c3a', opacity: closing ? 0.6 : undefined }}>
                 {closing ? 'Fechando…' : needsPayment ? `Confirmar ${money(total)}` : 'Confirmar'}
               </button>
             </div>

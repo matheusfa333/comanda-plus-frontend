@@ -80,8 +80,8 @@ export default function StockTab({ products, loading, onChange }: StockTabProps)
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Estoque</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Estoque</h2>
         {low.length > 0 && (
           <span className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{ background: 'rgba(217,83,79,0.12)', color: '#d9534f' }}>⚠ {low.length} {low.length === 1 ? 'item' : 'itens'} com estoque baixo</span>
         )}
@@ -123,7 +123,7 @@ export default function StockTab({ products, loading, onChange }: StockTabProps)
                           </span>
                         </div>
                       </div>
-                      <button onClick={() => open(p)} className="px-4 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(61,92,58,0.12)', color: '#3d5c3a' }}>Ajustar estoque</button>
+                      <button onClick={() => open(p)} className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(61,92,58,0.12)', color: '#3d5c3a' }}>Ajustar estoque</button>
                     </div>
                   )
                 })}
@@ -135,8 +135,8 @@ export default function StockTab({ products, loading, onChange }: StockTabProps)
       )}
 
       {target && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-md space-y-4 max-h-[92vh] overflow-y-auto">
             <div>
               <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Ajustar Estoque</h3>
               <p className="text-sm mt-1" style={{ color: '#7a6650' }}>{target.name} · atual <strong>{show(target, target.stock)}</strong></p>
@@ -144,7 +144,7 @@ export default function StockTab({ products, loading, onChange }: StockTabProps)
 
             <div>
               <label className="block text-sm font-medium text-[#7a6650] mb-1.5">Tipo de movimentação *</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-2">
                 {MOVEMENTS.map((m) => {
                   const active = form.movement === m.key
                   return (

@@ -71,9 +71,9 @@ export default function MenuTab({ products, loading, onChange }: MenuTabProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Cardápio</h2>
-        <button onClick={() => setShowCreate(true)} className="px-5 py-2.5 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Adicionar Item</button>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Cardápio</h2>
+        <button onClick={() => setShowCreate(true)} className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-semibold" style={{ background: '#3d5c3a', color: '#faf6ef' }}>+ Adicionar Item</button>
       </div>
 
       {loading ? (
@@ -85,8 +85,8 @@ export default function MenuTab({ products, loading, onChange }: MenuTabProps) {
               <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#c45c2a' }}>{CATEGORY_LABEL[cat]}</p>
               <div className="space-y-2">
                 {grouped[cat].map((p) => (
-                  <div key={p.id} className="rounded-2xl p-4 flex items-center gap-3" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
-                    <div className="flex-1 min-w-0">
+                  <div key={p.id} className="rounded-2xl p-3 sm:p-4 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
+                    <div className="flex-1 min-w-0 basis-full sm:basis-auto">
                       <p className="font-semibold text-[#2a1f14] flex flex-wrap items-center gap-2">
                         {p.name}
                         {p.isMeat && <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(196,92,42,0.12)', color: '#c45c2a' }}>por grama · mín. {p.minGrams ?? 300} g</span>}
@@ -94,7 +94,7 @@ export default function MenuTab({ products, loading, onChange }: MenuTabProps) {
                       </p>
                       {p.description && <p className="text-xs mt-0.5" style={{ color: '#8a7060' }}>{p.description}</p>}
                     </div>
-                    <span className="font-bold whitespace-nowrap" style={{ color: '#c45c2a' }}>{p.isMeat ? `${money(p.pricePerKg ?? 0)}/kg` : money(p.price)}</span>
+                    <span className="font-bold whitespace-nowrap mr-auto sm:mr-0" style={{ color: '#c45c2a' }}>{p.isMeat ? `${money(p.pricePerKg ?? 0)}/kg` : money(p.price)}</span>
                     <button onClick={() => setToRemove(p)} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(217,83,79,0.12)', color: '#d9534f' }}>Remover</button>
                   </div>
                 ))}
@@ -105,8 +105,8 @@ export default function MenuTab({ products, loading, onChange }: MenuTabProps) {
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 w-full max-w-md space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Adicionar Item ao Cardápio</h3>
             <div>
               <label className="block text-sm font-medium text-[#7a6650] mb-1.5">Categoria *</label>
@@ -115,6 +115,7 @@ export default function MenuTab({ products, loading, onChange }: MenuTabProps) {
                 <option value="ACOMPANHAMENTO">Acompanhamento</option>
                 <option value="CALDO">Caldo</option>
                 <option value="BEBIDA">Bebida</option>
+                <option value="OUTROS">Outros</option>
               </select>
             </div>
             <div>

@@ -20,9 +20,10 @@ export const CATEGORY_LABEL: Record<string, string> = {
   ACOMPANHAMENTO: '🍟 Acompanhamentos',
   CALDO: '🍲 Caldos',
   BEBIDA: '🍺 Bebidas',
+  OUTROS: '📦 Outros',
 }
 
-export const CATEGORY_ORDER = ['CARNE', 'ACOMPANHAMENTO', 'CALDO', 'BEBIDA']
+export const CATEGORY_ORDER = ['CARNE', 'ACOMPANHAMENTO', 'CALDO', 'BEBIDA', 'OUTROS']
 
 export const PAYMENT_LABEL: Record<string, { label: string; icon: string }> = {
   DINHEIRO: { label: 'Dinheiro', icon: '💵' },

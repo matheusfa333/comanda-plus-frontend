@@ -10,6 +10,8 @@ export interface AppUser {
   role: UserRole
   needsPasswordChange: boolean
   active: boolean
+  deactivatedAt: string | null
+  deletableAt: string | null // a partir de quando pode ser excluído
   createdAt: string
 }
 
