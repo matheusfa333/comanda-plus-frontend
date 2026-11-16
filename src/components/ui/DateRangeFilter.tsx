@@ -16,23 +16,26 @@ const SHORTCUTS = [
 ]
 
 export default function DateRangeFilter({ from, to, onChange }: DateRangeFilterProps) {
-  const input = 'w-full px-3 py-2 rounded-lg border text-sm bg-white'
+  const input = 'date-input block w-full min-w-0 max-w-full px-2 sm:px-3 py-2 rounded-lg border text-sm bg-white'
   return (
-    <div className="flex flex-wrap items-end gap-3 w-full sm:w-auto">
-      <div className="flex-1 min-w-[130px] sm:flex-none">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 w-full sm:w-auto min-w-0">
+      {/* Celular: 2 colunas iguais que nunca passam da borda */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:flex min-w-0">
+      <div className="min-w-0 sm:w-40">
         <label className="block text-xs font-medium mb-1" style={{ color: '#7a6650' }}>De</label>
         <input type="date" value={from} max={to} onChange={(e) => e.target.value && onChange({ from: e.target.value, to })} className={input} style={{ borderColor: '#d9cfc2' }} />
       </div>
-      <div className="flex-1 min-w-[130px] sm:flex-none">
+      <div className="min-w-0 sm:w-40">
         <label className="block text-xs font-medium mb-1" style={{ color: '#7a6650' }}>Até</label>
         <input type="date" value={to} min={from} max={todayISO()} onChange={(e) => e.target.value && onChange({ from, to: e.target.value })} className={input} style={{ borderColor: '#d9cfc2' }} />
+      </div>
       </div>
       <div className="flex w-full sm:w-auto gap-1 p-1 rounded-xl" style={{ background: '#f0e8de' }}>
         {SHORTCUTS.map((s) => {
           const r = s.range()
           const active = r.from === from && r.to === to
           return (
-            <button key={s.label} onClick={() => onChange(r)} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap" style={{ background: active ? '#fff9f2' : 'transparent', color: active ? '#2a1f14' : '#7a6650' }}>
+            <button key={s.label} onClick={() => onChange(r)} className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap" style={{ background: active ? '#fff9f2' : 'transparent', color: active ? '#2a1f14' : '#7a6650' }}>
               {s.label}
             </button>
           )

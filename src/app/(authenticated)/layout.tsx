@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ROLE_LABEL } from '@/lib/utils/format'
 
 export default function AuthenticatedLayout({
@@ -58,6 +59,15 @@ export default function AuthenticatedLayout({
                 {ROLE_LABEL[user?.role] ?? user?.role}
               </span>
             </div>
+
+            <Link
+              href="/seguranca"
+              title="Segurança da conta"
+              className="px-2 sm:px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-[rgba(255,249,242,0.1)]"
+              style={{ color: '#c9b39a' }}
+            >
+              🔒<span className="hidden sm:inline"> Segurança</span>
+            </Link>
 
             <button
               onClick={handleLogout}

@@ -12,6 +12,8 @@ export interface AppUser {
   active: boolean
   deactivatedAt: string | null
   deletableAt: string | null // a partir de quando pode ser excluído
+  twoFactorEnabled: boolean
+  twoFactorRequired: boolean // Admin e Gerente
   createdAt: string
 }
 
@@ -39,4 +41,9 @@ export async function resetUserPassword(id: string): Promise<{ success: boolean 
 
 export async function setUserActive(id: string, active: boolean): Promise<{ success: boolean }> {
   return fetchWithAuth(`/users/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) })
+}
+
+// Remove a verificação em 2 etapas de quem perdeu o celular
+export async function resetUserTwoFactor(id: string): Promise<{ success: boolean }> {
+  return fetchWithAuth(`/users/${id}/reset-two-factor`, { method: 'POST' })
 }

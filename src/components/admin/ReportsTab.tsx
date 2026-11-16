@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { getReports, Reports } from '@/lib/api/reports'
 import { money, weight, CATEGORY_LABEL, PAYMENT_LABEL, todayISO } from '@/lib/utils/format'
 import DateRangeFilter from '@/components/ui/DateRangeFilter'
+import { currentUserName } from '@/lib/pdf/current-user'
 
 type ReportKey = 'revenue' | 'payments' | 'employees' | 'beers' | 'meats' | 'categories' | 'ticket'
 
@@ -43,6 +44,7 @@ export default function ReportsTab() {
   const [selected, setSelected] = useState<ReportKey>('revenue')
   const [data, setData] = useState<Reports | null>(null)
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -56,6 +58,21 @@ export default function ReportsTab() {
   }, [range])
 
   useEffect(() => { load() }, [load])
+
+  // PDF com todos os relatórios do período
+  const handlePdf = async () => {
+    if (!data) return
+    setExporting(true)
+    try {
+      const { downloadReportsPdf } = await import('@/lib/pdf/reports-pdf')
+      await downloadReportsPdf(data, range.from, range.to, currentUserName())
+      toast.success('PDF gerado')
+    } catch (e: any) {
+      toast.error(e.message || 'Não foi possível gerar o PDF')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const empty = <p className="text-center py-10" style={{ color: '#8a7060' }}>Nenhuma venda fechada no período.</p>
   const fmt = (d: string) => d.split('-').reverse().join('/')
@@ -106,7 +123,18 @@ export default function ReportsTab() {
 
   return (
     <div>
-      <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14] mb-5" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Relatórios</h2>
+        <button
+          onClick={handlePdf}
+          disabled={!data || loading || exporting}
+          className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50"
+          style={{ background: '#2a1f14', color: '#faf6ef' }}
+          title="Baixa um PDF com todos os relatórios do período"
+        >
+          {exporting ? 'Gerando PDF…' : '⬇ Baixar PDF'}
+        </button>
+      </div>
 
       <div className="rounded-2xl p-4 mb-5 flex flex-wrap items-end gap-4" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
         <div className="w-full sm:w-auto sm:min-w-[230px]">
@@ -122,7 +150,7 @@ export default function ReportsTab() {
         <p className="font-semibold mb-4 text-[#2a1f14]">{REPORTS.find((r) => r.key === selected)?.icon} {REPORTS.find((r) => r.key === selected)?.label}</p>
         {loading ? <div className="h-32 rounded-xl animate-pulse" style={{ background: '#f5f0eb' }} /> : render()}
       </div>
-      <p className="text-xs mt-3" style={{ color: '#8a7060' }}>Os relatórios consideram apenas contas já fechadas.</p>
+      <p className="text-xs mt-3" style={{ color: '#8a7060' }}>Os relatórios consideram apenas contas já fechadas. O PDF traz todos os relatórios do período selecionado.</p>
     </div>
   )
 }

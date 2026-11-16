@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { AppUser, UserRole, createUser, deleteUser, resetUserPassword, setUserActive } from '@/lib/api/users'
+import { AppUser, UserRole, createUser, deleteUser, resetUserPassword, resetUserTwoFactor, setUserActive } from '@/lib/api/users'
 import { ROLE_LABEL } from '@/lib/utils/format'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 
@@ -24,7 +24,7 @@ function deleteState(u: AppUser): { allowed: boolean; hint: string } {
   return { allowed: true, hint: 'Desativado há mais de 30 dias' }
 }
 
-type Pending = { kind: 'delete' | 'reset' | 'toggle'; user: AppUser } | null
+type Pending = { kind: 'delete' | 'reset' | 'toggle' | 'reset2fa'; user: AppUser } | null
 
 interface UsersTabProps {
   users: AppUser[]
@@ -67,6 +67,9 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
       if (kind === 'delete') {
         await deleteUser(user.id)
         toast.success(`Usuário ${user.name} excluído`)
+      } else if (kind === 'reset2fa') {
+        await resetUserTwoFactor(user.id)
+        toast.success(`Verificação em 2 etapas de ${user.name} removida`)
       } else if (kind === 'reset') {
         await resetUserPassword(user.id)
         toast.success(`Senha de ${user.name} redefinida para 123`)
@@ -116,9 +119,17 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
                 ) : (
                   <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(61,92,58,0.15)', color: '#3d5c3a' }}>✓ Ativo</span>
                 )}
+                {u.twoFactorEnabled ? (
+                  <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(61,92,58,0.15)', color: '#3d5c3a' }} title="Verificação em 2 etapas ativa">🔒 2 etapas</span>
+                ) : u.twoFactorRequired && u.active ? (
+                  <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(232,160,74,0.18)', color: '#b8741f' }} title="Será obrigado a configurar no próximo login">🔒 Configura no próximo login</span>
+                ) : null}
                 {!isMe && (
                   <div className="w-full sm:w-auto flex flex-wrap gap-2">
                     <button onClick={() => setPending({ kind: 'reset', user: u })} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>Resetar senha</button>
+                    {u.twoFactorEnabled && (
+                      <button onClick={() => setPending({ kind: 'reset2fa', user: u })} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>Resetar 2 etapas</button>
+                    )}
                     <button onClick={() => setPending({ kind: 'toggle', user: u })} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ borderColor: '#e8ddd2', color: '#7a6650' }}>{u.active ? 'Desativar' : 'Reativar'}</button>
                     {!u.active && (
                       <button
@@ -195,10 +206,12 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
 
       {pending && (
         <ConfirmModal
-          title={pending.kind === 'delete' ? 'Excluir Usuário' : pending.kind === 'reset' ? 'Resetar Senha' : pending.user.active ? 'Desativar Usuário' : 'Reativar Usuário'}
+          title={pending.kind === 'delete' ? 'Excluir Usuário' : pending.kind === 'reset' ? 'Resetar Senha' : pending.kind === 'reset2fa' ? 'Resetar Verificação em 2 Etapas' : pending.user.active ? 'Desativar Usuário' : 'Reativar Usuário'}
           message={
             pending.kind === 'delete' ? (
               <>Excluir <strong>{pending.user.name}</strong>? Esta ação não pode ser desfeita. Usuários que já lançaram pedidos ficam apenas desativados, para manter o histórico.</>
+            ) : pending.kind === 'reset2fa' ? (
+              <>Use quando <strong>{pending.user.name}</strong> perdeu o celular. A verificação em 2 etapas será removida{pending.user.twoFactorRequired ? ' e precisará ser configurada de novo no próximo login (é obrigatória para este perfil).' : '. Ela poderá ser ativada de novo na página Segurança.'}</>
             ) : pending.kind === 'reset' ? (
               <>Redefinir a senha de <strong>{pending.user.name}</strong> para <strong>123</strong>? Ele precisará criar uma nova senha no próximo acesso.</>
             ) : pending.user.active ? (
@@ -207,7 +220,7 @@ export default function UsersTab({ users, loading, currentUserId, onChange }: Us
               <><strong>{pending.user.name}</strong> poderá voltar a entrar no sistema.</>
             )
           }
-          confirmLabel={pending.kind === 'delete' ? 'Excluir' : pending.kind === 'reset' ? 'Resetar' : pending.user.active ? 'Desativar' : 'Reativar'}
+          confirmLabel={pending.kind === 'delete' ? 'Excluir' : pending.kind === 'reset' || pending.kind === 'reset2fa' ? 'Resetar' : pending.user.active ? 'Desativar' : 'Reativar'}
           tone={pending.kind === 'delete' ? 'danger' : 'primary'}
           loading={busy}
           onConfirm={confirmPending}

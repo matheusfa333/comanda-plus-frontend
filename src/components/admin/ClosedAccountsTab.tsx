@@ -6,6 +6,7 @@ import { listClosedAccounts, ClosedAccountsResult } from '@/lib/api/reports'
 import { money, weight, time, dateTime, todayISO, PAYMENT_LABEL } from '@/lib/utils/format'
 import { Payment } from '@/lib/api/tables'
 import DateRangeFilter from '@/components/ui/DateRangeFilter'
+import { currentUserName } from '@/lib/pdf/current-user'
 
 const duration = (from: string, to: string) => {
   const min = Math.max(0, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000))
@@ -21,6 +22,7 @@ export default function ClosedAccountsTab() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -34,6 +36,21 @@ export default function ClosedAccountsTab() {
   }, [range])
 
   useEffect(() => { load() }, [load])
+
+  // PDF com o resumo e todas as contas do período (ignora o filtro de busca)
+  const handlePdf = async () => {
+    if (!data) return
+    setExporting(true)
+    try {
+      const { downloadClosedAccountsPdf } = await import('@/lib/pdf/reports-pdf')
+      await downloadClosedAccountsPdf(data, range.from, range.to, currentUserName())
+      toast.success('PDF gerado')
+    } catch (e: any) {
+      toast.error(e.message || 'Não foi possível gerar o PDF')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const multiDay = range.from !== range.to
   const accounts = useMemo(() => {
@@ -53,7 +70,12 @@ export default function ClosedAccountsTab() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h2 className="text-xl sm:text-2xl font-bold text-[#2a1f14]" style={{ fontFamily: 'Georgia, serif' }}>Mesas Fechadas</h2>
-        <button onClick={load} className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>↻ Atualizar</button>
+        <div className="flex gap-2">
+          <button onClick={handlePdf} disabled={!data || loading || exporting} className="text-xs px-3 py-1.5 rounded-full font-semibold disabled:opacity-50" style={{ background: '#2a1f14', color: '#faf6ef' }}>
+            {exporting ? 'Gerando…' : '⬇ Baixar PDF'}
+          </button>
+          <button onClick={load} className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{ background: '#f0f0f0', color: '#7a6650' }}>↻ Atualizar</button>
+        </div>
       </div>
 
       <div className="rounded-2xl p-4 mb-5" style={{ background: '#fff9f2', border: '1px solid #d9cfc2' }}>
@@ -132,10 +154,7 @@ export default function ClosedAccountsTab() {
 
                 {expanded && (
                   <div className="px-3 sm:px-4 pb-4 pt-1 border-t" style={{ borderColor: '#ece3d8' }}>
-                    {a.orders.length === 0 ? (
-                      <p className="text-sm py-3" style={{ color: '#8a7060' }}>Mesa fechada sem consumo.</p>
-                    ) : (
-                      a.orders.map((o) => (
+                    {a.orders.map((o) => (
                         <div key={o.id} className="mt-3">
                           <p className="text-xs font-semibold mb-1" style={{ color: '#7a6650' }}>Pedido às {time(o.createdAt)} · lançado por {o.waiter}</p>
                           <table className="w-full text-sm">
@@ -151,8 +170,7 @@ export default function ClosedAccountsTab() {
                             </tbody>
                           </table>
                         </div>
-                      ))
-                    )}
+                    ))}
                     <div className="mt-3 pt-2 border-t text-sm space-y-0.5" style={{ borderColor: '#ece3d8' }}>
                       <div className="flex justify-between"><span style={{ color: '#7a6650' }}>Subtotal</span><span>{money(a.subtotal)}</span></div>
                       <div className="flex justify-between"><span style={{ color: '#7a6650' }}>Taxa de serviço (10%)</span><span>{money(a.serviceFee)}</span></div>
